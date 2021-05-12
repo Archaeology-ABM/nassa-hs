@@ -9,6 +9,7 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.:), (.:?), (.=))
 import qualified Data.ByteString            as B
+import           Data.Either                (lefts, rights)
 import           Data.Version               (showVersion)
 import           Data.Yaml                  (decodeEither', ParseException)
 import qualified Options.Applicative        as OP
@@ -17,7 +18,10 @@ import           System.Directory           (doesDirectoryExist,
 import           System.Exit                (exitFailure)
 import           System.FilePath            ((</>), takeFileName)
 import           System.IO                  (hPutStrLn, stderr)
-import Data.Either (lefts, rights)
+import           Text.Layout.Table          (asciiRoundS, column, def, expand,
+                                             expandUntil, rowsG, tableString,
+                                             titlesH)
+import Data.List (intercalate, sortOn)
 
 -- exceptions
 
@@ -33,8 +37,9 @@ renderNasaException (NasaYamlParseException fn e) =
 
 -- data types
 
-data ListOptions = ListOptions
-    { _inList :: FilePath
+data ListOptions = ListOptions { 
+      _inPath :: FilePath
+    , _optRaw :: Bool
     }
 
 data Options = CmdList ListOptions
@@ -91,7 +96,8 @@ optParser = OP.subparser (
         (OP.progDesc "list")
 
 listOptParser :: OP.Parser ListOptions
-listOptParser = ListOptions <$> parseFilePath
+listOptParser = ListOptions <$> parseFilePath 
+                            <*> parseRawOutput
 
 parseFilePath :: OP.Parser FilePath
 parseFilePath = OP.strOption (
@@ -100,12 +106,18 @@ parseFilePath = OP.strOption (
     OP.help "root directory where to search for NASA modules"
     )
 
+parseRawOutput :: OP.Parser Bool
+parseRawOutput = OP.switch (
+    OP.long "raw" <> 
+    OP.help "output table as tsv without header. Useful for piping into grep or awk"
+    )
+
 -- program logic
 
 runList :: ListOptions -> IO ()
-runList (ListOptions baseDir) = do
+runList (ListOptions baseDir rawOutput) = do
     yamlCollection <- readNasaModuleCollection baseDir
-    hPutStrLn stderr $ show $ map _nasaYamlID yamlCollection
+    printModuleTable rawOutput yamlCollection
 
 readNasaModuleCollection :: FilePath -> IO [NasaYamlStruct]
 readNasaModuleCollection baseDir = do
@@ -122,7 +134,7 @@ readNasaModuleCollection baseDir = do
                     hPutStrLn stderr (renderNasaException e)
                 _ -> return ()
     let loadedYamlFiles = rights eitherYamls
-    hPutStrLn stderr $ "Modules loaded: " ++ (show . length $ loadedYamlFiles)
+    hPutStrLn stderr $ (show . length $ loadedYamlFiles) ++ " loaded"
     return loadedYamlFiles
 
 findAllNasaYamlFiles :: FilePath -> IO [FilePath]
@@ -139,3 +151,13 @@ readNasaYaml yamlPath = do
     case decodeEither' yamlRaw of
         Left err  -> throwIO $ NasaYamlParseException yamlPath err
         Right pac -> return pac
+
+printModuleTable :: Bool -> [NasaYamlStruct] -> IO ()
+printModuleTable rawOutput modules = do
+    let tableH = ["id", "title"]
+        tableB = zipWith (\x y -> [x, y]) (map (show . _nasaYamlID) modules) (map _nasaYamlTitle modules)
+    if rawOutput
+    then putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
+    else do
+        let colSpecs = replicate (length tableH) (column (expandUntil 60) def def def)
+        putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
