@@ -26,11 +26,11 @@ renderNasaException :: NasaException -> String
 renderNasaException (NasaYamlParseException fn e) =
     "Could not parse YAML file " ++ fn ++ ": " ++ show e
 
-data TestOptions = TestOptions
-    { _inTest :: String
+data ListOptions = ListOptions
+    { _inList :: FilePath
     }
 
-data Options = CmdTest TestOptions
+data Options = CmdList ListOptions
 
 data NasaYamlStruct = NasaYamlStruct {
       _nasaYamlID :: Integer
@@ -63,7 +63,7 @@ main = do
 
 runCmd :: Options -> IO ()
 runCmd o = case o of
-    CmdTest opts -> runTest opts
+    CmdList opts -> runList opts
 
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
@@ -76,29 +76,28 @@ versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.hel
 
 optParser :: OP.Parser Options
 optParser = OP.subparser (
-        OP.command "test" testOptInfo <>
-        OP.commandGroup "test:"
+        OP.command "list" listOptInfo <>
+        OP.commandGroup "Inspection commands:"
     )
   where
-    testOptInfo = OP.info (OP.helper <*> (CmdTest <$> testOptParser))
-        (OP.progDesc "test")
+    listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))
+        (OP.progDesc "list")
 
-testOptParser :: OP.Parser TestOptions
-testOptParser = TestOptions <$> parseTest
+listOptParser :: OP.Parser ListOptions
+listOptParser = ListOptions <$> parseFilePath
 
-parseTest :: OP.Parser String 
-parseTest = OP.strOption (
-    OP.long "test" <> 
-    OP.help "test" <>
-    OP.value "test" <>
-    OP.showDefault
+parseFilePath :: OP.Parser FilePath 
+parseFilePath = OP.strOption (
+    OP.long "baseDir" <> 
+    OP.short 'd' <> 
+    OP.help "root directory where to search for NASA modules"
     )
 
 -- program logic
 
-runTest :: TestOptions -> IO ()
-runTest (TestOptions test) = do
-    yaml <- readNasaYaml "NASA.yml"
+runList :: ListOptions -> IO ()
+runList (ListOptions baseDir) = do
+    yaml <- readNasaYaml baseDir
     hPutStrLn stderr $ show $ _nasaYamlID yaml
     
 readNasaYaml :: FilePath -> IO NasaYamlStruct
