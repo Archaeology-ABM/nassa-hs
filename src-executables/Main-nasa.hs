@@ -1,13 +1,30 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Paths_nasa             (version)
+import           Paths_nasa                 (version)
 
-import           Control.Applicative    ((<|>))
-import           Control.Exception      (catch)
-import           Data.Version           (showVersion)
-import qualified Options.Applicative    as OP
-import           System.Exit            (exitFailure)
-import           System.IO              (hPutStrLn, stderr)
+import           Control.Applicative        ((<|>))
+import           Control.Exception          (Exception, throwIO, catch)
+import           Data.Aeson                 (FromJSON, ToJSON, object,
+                                             parseJSON, toJSON, withObject,
+                                             (.:), (.:?), (.=))
+import qualified Data.ByteString            as B                                             
+import           Data.Version               (showVersion)
+import           Data.Yaml                  (decodeEither', ParseException)
+import qualified Options.Applicative        as OP
+import           System.Exit                (exitFailure)
+import           System.IO                  (hPutStrLn, stderr)
+
+-- data types
+
+data NasaException = 
+    NasaYamlParseException FilePath ParseException -- ^ An exception to represent YAML parsing errors
+    deriving Show
+
+instance Exception NasaException
+
+renderNasaException :: NasaException -> String
+renderNasaException (NasaYamlParseException fn e) =
+    "Could not parse YAML file " ++ fn ++ ": " ++ show e
 
 data TestOptions = TestOptions
     { _inTest :: String
@@ -15,17 +32,34 @@ data TestOptions = TestOptions
 
 data Options = CmdTest TestOptions
 
+data NasaYamlStruct = NasaYamlStruct {
+      _nasaYamlID :: Integer
+    , _nasaYamlTitle :: String
+} deriving (Show, Eq)
+
+instance FromJSON NasaYamlStruct where
+    parseJSON = withObject "NasaYamlStruct" $ \v -> NasaYamlStruct
+        <$> v .:   "id"
+        <*> v .:   "title"
+
+instance ToJSON NasaYamlStruct where
+    toJSON x = object [
+        "id"    .= _nasaYamlID x,
+        "title" .= _nasaYamlTitle x
+        ]
+
+-- command line interface
+
 main :: IO ()
 main = do
     cmdOpts <- OP.customExecParser p optParserInfo
-    runCmd cmdOpts
-    --catch (runCmd cmdOpts) handler
+    catch (runCmd cmdOpts) handler
     where
         p = OP.prefs OP.showHelpOnEmpty
-        --handler :: PoseidonException -> IO ()
-        --handler e = do
-        --    hPutStrLn stderr $ renderPoseidonException e
-        --    exitFailure
+        handler :: NasaException -> IO ()
+        handler e = do
+            hPutStrLn stderr $ renderNasaException e
+            exitFailure
 
 runCmd :: Options -> IO ()
 runCmd o = case o of
@@ -60,7 +94,16 @@ parseTest = OP.strOption (
     OP.showDefault
     )
 
+-- program logic
+
 runTest :: TestOptions -> IO ()
 runTest (TestOptions test) = do
-    hPutStrLn stderr $ "test"
+    yaml <- readNasaYaml "NASA.yml"
+    hPutStrLn stderr $ show $ _nasaYamlID yaml
     
+readNasaYaml :: FilePath -> IO NasaYamlStruct
+readNasaYaml yamlPath = do
+    yamlRaw <- B.readFile yamlPath
+    case decodeEither' yamlRaw of
+        Left err  -> throwIO $ NasaYamlParseException yamlPath err
+        Right pac -> return pac
