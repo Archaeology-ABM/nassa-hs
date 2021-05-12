@@ -15,7 +15,8 @@ extra-source-files:  README.md,
 executable nasa
     main-is:            Main-nasa.hs
     hs-source-dirs:     src-executables
-    build-depends:      base, optparse-applicative, filepath, aeson, bytestring, yaml
+    build-depends:      base, optparse-applicative, filepath, aeson, bytestring, yaml,
+                        directory
     other-modules:      Paths_nasa
     default-language:   Haskell2010
 

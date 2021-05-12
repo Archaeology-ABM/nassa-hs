@@ -3,20 +3,25 @@
 import           Paths_nasa                 (version)
 
 import           Control.Applicative        ((<|>))
-import           Control.Exception          (Exception, throwIO, catch)
+import           Control.Exception          (Exception, throwIO, catch, try)
+import           Control.Monad              (filterM, unless, forM_)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
                                              (.:), (.:?), (.=))
-import qualified Data.ByteString            as B                                             
+import qualified Data.ByteString            as B
 import           Data.Version               (showVersion)
 import           Data.Yaml                  (decodeEither', ParseException)
 import qualified Options.Applicative        as OP
+import           System.Directory           (doesDirectoryExist,
+                                             listDirectory)
 import           System.Exit                (exitFailure)
+import           System.FilePath            ((</>), takeFileName)
 import           System.IO                  (hPutStrLn, stderr)
+import Data.Either (lefts, rights)
 
--- data types
+-- exceptions
 
-data NasaException = 
+data NasaException =
     NasaYamlParseException FilePath ParseException -- ^ An exception to represent YAML parsing errors
     deriving Show
 
@@ -25,6 +30,8 @@ instance Exception NasaException
 renderNasaException :: NasaException -> String
 renderNasaException (NasaYamlParseException fn e) =
     "Could not parse YAML file " ++ fn ++ ": " ++ show e
+
+-- data types
 
 data ListOptions = ListOptions
     { _inList :: FilePath
@@ -86,10 +93,10 @@ optParser = OP.subparser (
 listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseFilePath
 
-parseFilePath :: OP.Parser FilePath 
+parseFilePath :: OP.Parser FilePath
 parseFilePath = OP.strOption (
-    OP.long "baseDir" <> 
-    OP.short 'd' <> 
+    OP.long "baseDir" <>
+    OP.short 'd' <>
     OP.help "root directory where to search for NASA modules"
     )
 
@@ -97,9 +104,35 @@ parseFilePath = OP.strOption (
 
 runList :: ListOptions -> IO ()
 runList (ListOptions baseDir) = do
-    yaml <- readNasaYaml baseDir
-    hPutStrLn stderr $ show $ _nasaYamlID yaml
-    
+    yamlCollection <- readNasaModuleCollection baseDir
+    hPutStrLn stderr $ show $ map _nasaYamlID yamlCollection
+
+readNasaModuleCollection :: FilePath -> IO [NasaYamlStruct]
+readNasaModuleCollection baseDir = do
+    hPutStrLn stderr "Searching NASA.yml files... "
+    yamlFilePaths <- findAllNasaYamlFiles baseDir
+    hPutStrLn stderr $ show (length yamlFilePaths) ++ " found"
+    hPutStrLn stderr "Loading NASA modules... "
+    eitherYamls <- mapM (try . readNasaYaml) yamlFilePaths :: IO [Either NasaException NasaYamlStruct]
+    unless (null . lefts $ eitherYamls) $ do
+        hPutStrLn stderr "Some modules were skipped:"
+        forM_ (zip yamlFilePaths eitherYamls) $ \(posF, epac) -> do
+            case epac of
+                Left e -> do
+                    hPutStrLn stderr (renderNasaException e)
+                _ -> return ()
+    let loadedYamlFiles = rights eitherYamls
+    hPutStrLn stderr $ "Modules loaded: " ++ (show . length $ loadedYamlFiles)
+    return loadedYamlFiles
+
+findAllNasaYamlFiles :: FilePath -> IO [FilePath]
+findAllNasaYamlFiles baseDir = do
+    entries <- listDirectory baseDir
+    let curFiles = map (baseDir </>) $ filter (=="NASA.yml") $ map takeFileName entries
+    subDirs <- filterM doesDirectoryExist . map (baseDir </>) $ entries
+    moreFiles <- fmap concat . mapM findAllNasaYamlFiles $ subDirs
+    return $ curFiles ++ moreFiles
+
 readNasaYaml :: FilePath -> IO NasaYamlStruct
 readNasaYaml yamlPath = do
     yamlRaw <- B.readFile yamlPath
