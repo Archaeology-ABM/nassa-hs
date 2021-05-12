@@ -11,6 +11,7 @@ import           Data.Aeson                 (FromJSON, ToJSON, object,
 import qualified Data.ByteString            as B
 import           Data.Either                (lefts, rights)
 import           Data.Version               (showVersion)
+import           Data.List                  (transpose, intercalate, sortOn)          
 import           Data.Yaml                  (decodeEither', ParseException)
 import qualified Options.Applicative        as OP
 import           System.Directory           (doesDirectoryExist,
@@ -21,7 +22,6 @@ import           System.IO                  (hPutStrLn, stderr)
 import           Text.Layout.Table          (asciiRoundS, column, def, expand,
                                              expandUntil, rowsG, tableString,
                                              titlesH)
-import Data.List (intercalate, sortOn)
 
 -- exceptions
 
@@ -44,21 +44,37 @@ data ListOptions = ListOptions {
 
 data Options = CmdList ListOptions
 
+data NasaInteractionsStruct = NasaInteractionsStruct {
+      _nasaInteractionsDependencies :: Maybe [Int],
+      _nasaInteractionsSuggests :: Maybe [Int]
+    } deriving (Show, Eq)
+
+instance FromJSON NasaInteractionsStruct where
+    parseJSON = withObject "NasaInteractionsStruct" $ \v -> NasaInteractionsStruct
+        <$> v .:   "dependencies"
+        <*> v .:   "suggests"
+
 data NasaYamlStruct = NasaYamlStruct {
       _nasaYamlID :: Integer
     , _nasaYamlTitle :: String
-} deriving (Show, Eq)
+    , _nasaYamlCategory :: String
+    , _nasaYamlTags :: Maybe [String]
+    , _nasaYamlAutorship :: String
+    , _nasaYamlLanguage :: String
+    , _nasaYamlLicense :: String
+    , _nasaYamlInteractions :: Maybe NasaInteractionsStruct
+    } deriving (Show, Eq)
 
 instance FromJSON NasaYamlStruct where
     parseJSON = withObject "NasaYamlStruct" $ \v -> NasaYamlStruct
         <$> v .:   "id"
         <*> v .:   "title"
-
-instance ToJSON NasaYamlStruct where
-    toJSON x = object [
-        "id"    .= _nasaYamlID x,
-        "title" .= _nasaYamlTitle x
-        ]
+        <*> v .:   "category"
+        <*> v .:?  "tags"
+        <*> v .:   "autorship"
+        <*> v .:   "language"
+        <*> v .:   "license"
+        <*> v .:   "interactions"
 
 -- command line interface
 
@@ -155,7 +171,7 @@ readNasaYaml yamlPath = do
 printModuleTable :: Bool -> [NasaYamlStruct] -> IO ()
 printModuleTable rawOutput modules = do
     let tableH = ["id", "title"]
-        tableB = zipWith (\x y -> [x, y]) (map (show . _nasaYamlID) modules) (map _nasaYamlTitle modules)
+        tableB = transpose [map (show . _nasaYamlID) modules, map _nasaYamlTitle modules, map _nasaYamlCategory modules]
     if rawOutput
     then putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
     else do
