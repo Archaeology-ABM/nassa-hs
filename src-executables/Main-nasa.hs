@@ -7,11 +7,11 @@ import           Control.Exception          (Exception, throwIO, catch, try)
 import           Control.Monad              (filterM, unless, forM_)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
                                              parseJSON, toJSON, withObject,
-                                             (.:), (.:?), (.=))
+                                             (.:), (.:?), (.=), withText)
 import qualified Data.ByteString            as B
 import           Data.Either                (lefts, rights)
 import           Data.Version               (showVersion)
-import           Data.List                  (transpose, intercalate, sortOn)          
+import           Data.List                  (transpose, intercalate, sortOn)
 import           Data.Yaml                  (decodeEither', ParseException)
 import qualified Options.Applicative        as OP
 import           System.Directory           (doesDirectoryExist,
@@ -54,14 +54,32 @@ instance FromJSON NasaInteractionsStruct where
         <$> v .:   "dependencies"
         <*> v .:   "suggests"
 
+data NasaLanguageStruct = 
+      LanguageR 
+    | LanguagePython
+    | LanguageNetlogo
+    deriving (Eq)
+
+instance Show NasaLanguageStruct where
+    show LanguageR = "R"
+    show LanguagePython = "Python"
+    show LanguageNetlogo = "Netlogo"
+
+instance FromJSON NasaLanguageStruct where
+    parseJSON = withText "language" $ \v -> case v of
+        "R"         -> pure LanguageR
+        "Python"    -> pure LanguagePython
+        "Netlogo"   -> pure LanguageNetlogo
+        _           -> fail ("unknown Language")
+
 data NasaYamlStruct = NasaYamlStruct {
       _nasaYamlID :: Integer
     , _nasaYamlTitle :: String
     , _nasaYamlCategory :: String
     , _nasaYamlTags :: Maybe [String]
-    , _nasaYamlAutorship :: String
-    , _nasaYamlLanguage :: String
-    , _nasaYamlLicense :: String
+    , _nasaYamlAuthorship :: String
+    , _nasaYamlLanguage :: NasaLanguageStruct
+    , _nasaYamlLicense :: Maybe String
     , _nasaYamlInteractions :: Maybe NasaInteractionsStruct
     } deriving (Show, Eq)
 
@@ -71,10 +89,10 @@ instance FromJSON NasaYamlStruct where
         <*> v .:   "title"
         <*> v .:   "category"
         <*> v .:?  "tags"
-        <*> v .:   "autorship"
+        <*> v .:   "authorship"
         <*> v .:   "language"
-        <*> v .:   "license"
-        <*> v .:   "interactions"
+        <*> v .:?  "license"
+        <*> v .:?  "interactions"
 
 -- command line interface
 
@@ -170,8 +188,13 @@ readNasaYaml yamlPath = do
 
 printModuleTable :: Bool -> [NasaYamlStruct] -> IO ()
 printModuleTable rawOutput modules = do
-    let tableH = ["id", "title"]
-        tableB = transpose [map (show . _nasaYamlID) modules, map _nasaYamlTitle modules, map _nasaYamlCategory modules]
+    let tableH = ["id", "title", "category", "language"]
+        tableB = transpose [
+            map (show . _nasaYamlID) modules, 
+            map _nasaYamlTitle modules, 
+            map _nasaYamlCategory modules,
+            map (show . _nasaYamlLanguage) modules
+            ]
     if rawOutput
     then putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
     else do
