@@ -1,0 +1,8 @@
+resolver: lts-17.1
+
+packages:
+- .
+extra-deps:
+- table-layout-0.9.1.0
+- yaml-pretty-extras-0.0.2.2
+
