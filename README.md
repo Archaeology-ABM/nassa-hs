@@ -4,7 +4,7 @@ This is a demonstration piece to illustrate how the nasa module management with 
 
 ### Example (in `playground/`)
 
-We have a repository with three repos.
+We have a repository with three modules.
 
 module1: 
 ```
