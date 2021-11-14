@@ -63,12 +63,12 @@ readNassaYaml yamlPath = do
 
 printModuleTable :: Bool -> [NassaYamlStruct] -> IO ()
 printModuleTable rawOutput modules = do
-    let tableH = ["id", "title", "category", "language"]
+    let tableH = ["id", "title", "first author"]--, "language"]
         tableB = transpose [
-            map (show . _nassaYamlID) modules, 
+            map _nassaYamlID modules, 
             map _nassaYamlTitle modules, 
-            map _nassaYamlCategory modules,
-            map (show . _nassaYamlLanguage) modules
+            map (contributorName . head . _nassaYamlContributors) modules
+            --map (show . _nassaYamlLanguage) modules
             ]
     if rawOutput
     then putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]

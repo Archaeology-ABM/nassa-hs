@@ -1,6 +1,11 @@
-id: 1
+id: 2021-Testbär-001
 title: Green random walk
-category: Random walk
-authorship: Clemens Schmid
-language: R
+moduleVersion: 0.1.0
+contributors:
+  - name: Alfred Testbär
+    email: alfred@cheesecake.com
+    orcid: 1234-1234-1234-1234
+  - name: Hanna Testlurch
+    email: lurch@lake.com
+    orcid: 1231-1231-1231-1231
 
