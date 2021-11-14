@@ -7,5 +7,18 @@ contributors:
     orcid: 1234-1234-1234-1234
   - name: Hanna Testlurch
     email: lurch@lake.com
-    orcid: 1231-1231-1231-1231
-
+lastUpdateDate: 2021-11-14
+description: >
+  This is a very green implementation of a random walk.
+  Very green!
+  Believe me!
+relatedReferences:
+  - Clark, G. The invasion hypothesis in British archaeology. Antiquity 40, 172–189 (1966)
+  - Patterson, N. et al. Ancient admixture in human history. Genetics 192, 1065–1093 (2012)
+programmingLanguages:
+  - R
+  - Netlogo
+softwareDependencies:
+  - R >= v.3.6.0
+  - libgdal >= 3.2.0
+license: GPL-3

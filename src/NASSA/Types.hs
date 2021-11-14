@@ -6,46 +6,50 @@ module NASSA.Types where
 import           Data.Aeson                 (FromJSON,
                                              parseJSON, withObject,
                                              (.:), (.:?), withText)
+import           Data.Time                  (Day)
 import           Data.Version               (Version)
+
 
 data NassaYamlStruct = NassaYamlStruct {
       _nassaYamlID :: String
     , _nassaYamlTitle :: String
     , _nassaYamlModuleVersion :: Version
-    , _nassaYamlContributors :: [ContributorStruct]
-    -- , _nassaYamlCategory :: String
-    -- , _nassaYamlTags :: Maybe [String]
-    -- , _nassaYamlAuthorship :: String
-    -- , _nassaYamlLanguage :: NassaLanguageStruct
-    -- , _nassaYamlLicense :: Maybe String
+    , _nassaYamlContributors :: [Contributor]
+    , _nassaYamlLastUpdateDate :: Day
+    , _nassaYamlDescription :: String
+    , _nassaRelatedReferences :: Maybe [String]
+    , _nassaYamlProgrammingLanguage :: [ProgrammingLanguage]
+    , _nassaYamlSoftwareDependencies :: [String]
     -- , _nassaYamlInteractions :: Maybe NassaInteractionsStruct
+    , _nassaYamlLicense :: Maybe String
     } deriving (Show, Eq)
 
 instance FromJSON NassaYamlStruct where
     parseJSON = withObject "NassaYamlStruct" $ \v -> NassaYamlStruct
-        <$> v .:   "id"
-        <*> v .:   "title"
-        <*> v .:   "moduleVersion"
-        <*> v .:   "contributors"
-        -- <*> v .:   "category"
-        -- <*> v .:?  "tags"
-        -- <*> v .:   "authorship"
-        -- <*> v .:   "language"
-        -- <*> v .:?  "license"
+        <$> v .:  "id"
+        <*> v .:  "title"
+        <*> v .:  "moduleVersion"
+        <*> v .:  "contributors"
+        <*> v .:  "lastUpdateDate"
+        <*> v .:  "description"
+        <*> v .:? "relatedReferences"
+        <*> v .:  "programmingLanguages"
+        <*> v .:  "softwareDependencies"
         -- <*> v .:?  "interactions"
+        <*> v .:?  "license"
 
-data ContributorStruct = ContributorStruct
+data Contributor = Contributor
     { contributorName  :: String
     , contributorEmail :: String
-    , contributorORCID :: String
+    , contributorORCID :: Maybe String
     }
     deriving (Show, Eq)
 
-instance FromJSON ContributorStruct where
-    parseJSON = withObject "contributors" $ \v -> ContributorStruct
-        <$> v .: "name"
-        <*> v .: "email"
-        <*> v .: "orcid"
+instance FromJSON Contributor where
+    parseJSON = withObject "contributors" $ \v -> Contributor
+        <$> v .:  "name"
+        <*> v .:  "email"
+        <*> v .:? "orcid"
 
 
 data NassaInteractionsStruct = NassaInteractionsStruct {
@@ -58,20 +62,20 @@ instance FromJSON NassaInteractionsStruct where
         <$> v .:   "dependencies"
         <*> v .:   "suggests"
 
-data NassaLanguageStruct = 
+data ProgrammingLanguage = 
       LanguageR 
     | LanguagePython
     | LanguageNetlogo
     deriving (Eq)
 
-instance Show NassaLanguageStruct where
+instance Show ProgrammingLanguage where
     show LanguageR = "R"
     show LanguagePython = "Python"
     show LanguageNetlogo = "Netlogo"
 
-instance FromJSON NassaLanguageStruct where
-    parseJSON = withText "language" $ \case
+instance FromJSON ProgrammingLanguage where
+    parseJSON = withText "programmingLanguage" $ \case
         "R"         -> pure LanguageR
         "Python"    -> pure LanguagePython
         "Netlogo"   -> pure LanguageNetlogo
-        _           -> fail "unknown Language"
+        other       -> fail $ "unknown Language: " ++ show other
