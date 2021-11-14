@@ -12,11 +12,18 @@ cabal-version:       >=1.10
 extra-source-files:  README.md,
                      CHANGELOG.md
 
+library
+    exposed-modules:    NASSA.Types, NASSA.Utils
+                        NASSA.CLI.List
+    hs-source-dirs:     src
+    build-depends:      base, filepath, filepath, aeson, bytestring, yaml,
+                        directory, table-layout
+    default-language:   Haskell2010
+
 executable nassa
     main-is:            Main-nassa.hs
     hs-source-dirs:     src-executables
-    build-depends:      base, optparse-applicative, filepath, aeson, bytestring, yaml,
-                        directory, table-layout
+    build-depends:      nassa, base, optparse-applicative, filepath
     other-modules:      Paths_nassa
     default-language:   Haskell2010
 
