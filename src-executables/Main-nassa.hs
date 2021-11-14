@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Paths_nasa                 (version)
+import           Paths_nassa                 (version)
 
 import           Control.Applicative        ((<|>))
 import           Control.Exception          (Exception, throwIO, catch, try)
@@ -25,14 +25,14 @@ import           Text.Layout.Table          (asciiRoundS, column, def, expand,
 
 -- exceptions
 
-data NasaException =
-    NasaYamlParseException FilePath ParseException -- ^ An exception to represent YAML parsing errors
+data NassaException =
+    NassaYamlParseException FilePath ParseException -- ^ An exception to represent YAML parsing errors
     deriving Show
 
-instance Exception NasaException
+instance Exception NassaException
 
-renderNasaException :: NasaException -> String
-renderNasaException (NasaYamlParseException fn e) =
+renderNassaException :: NassaException -> String
+renderNassaException (NassaYamlParseException fn e) =
     "Could not parse YAML file " ++ fn ++ ": " ++ show e
 
 -- data types
@@ -44,47 +44,47 @@ data ListOptions = ListOptions {
 
 data Options = CmdList ListOptions
 
-data NasaInteractionsStruct = NasaInteractionsStruct {
-      _nasaInteractionsDependencies :: Maybe [Int],
-      _nasaInteractionsSuggests :: Maybe [Int]
+data NassaInteractionsStruct = NassaInteractionsStruct {
+      _nassaInteractionsDependencies :: Maybe [Int],
+      _nassaInteractionsSuggests :: Maybe [Int]
     } deriving (Show, Eq)
 
-instance FromJSON NasaInteractionsStruct where
-    parseJSON = withObject "NasaInteractionsStruct" $ \v -> NasaInteractionsStruct
+instance FromJSON NassaInteractionsStruct where
+    parseJSON = withObject "NassaInteractionsStruct" $ \v -> NassaInteractionsStruct
         <$> v .:   "dependencies"
         <*> v .:   "suggests"
 
-data NasaLanguageStruct = 
+data NassaLanguageStruct = 
       LanguageR 
     | LanguagePython
     | LanguageNetlogo
     deriving (Eq)
 
-instance Show NasaLanguageStruct where
+instance Show NassaLanguageStruct where
     show LanguageR = "R"
     show LanguagePython = "Python"
     show LanguageNetlogo = "Netlogo"
 
-instance FromJSON NasaLanguageStruct where
+instance FromJSON NassaLanguageStruct where
     parseJSON = withText "language" $ \v -> case v of
         "R"         -> pure LanguageR
         "Python"    -> pure LanguagePython
         "Netlogo"   -> pure LanguageNetlogo
         _           -> fail ("unknown Language")
 
-data NasaYamlStruct = NasaYamlStruct {
-      _nasaYamlID :: Integer
-    , _nasaYamlTitle :: String
-    , _nasaYamlCategory :: String
-    , _nasaYamlTags :: Maybe [String]
-    , _nasaYamlAuthorship :: String
-    , _nasaYamlLanguage :: NasaLanguageStruct
-    , _nasaYamlLicense :: Maybe String
-    , _nasaYamlInteractions :: Maybe NasaInteractionsStruct
+data NassaYamlStruct = NassaYamlStruct {
+      _nassaYamlID :: Integer
+    , _nassaYamlTitle :: String
+    , _nassaYamlCategory :: String
+    , _nassaYamlTags :: Maybe [String]
+    , _nassaYamlAuthorship :: String
+    , _nassaYamlLanguage :: NassaLanguageStruct
+    , _nassaYamlLicense :: Maybe String
+    , _nassaYamlInteractions :: Maybe NassaInteractionsStruct
     } deriving (Show, Eq)
 
-instance FromJSON NasaYamlStruct where
-    parseJSON = withObject "NasaYamlStruct" $ \v -> NasaYamlStruct
+instance FromJSON NassaYamlStruct where
+    parseJSON = withObject "NassaYamlStruct" $ \v -> NassaYamlStruct
         <$> v .:   "id"
         <*> v .:   "title"
         <*> v .:   "category"
@@ -102,9 +102,9 @@ main = do
     catch (runCmd cmdOpts) handler
     where
         p = OP.prefs OP.showHelpOnEmpty
-        handler :: NasaException -> IO ()
+        handler :: NassaException -> IO ()
         handler e = do
-            hPutStrLn stderr $ renderNasaException e
+            hPutStrLn stderr $ renderNassaException e
             exitFailure
 
 runCmd :: Options -> IO ()
@@ -114,7 +114,7 @@ runCmd o = case o of
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
     OP.briefDesc <>
-    OP.progDesc "nasa"
+    OP.progDesc "nassa"
     )
 
 versionOption :: OP.Parser (a -> a)
@@ -137,7 +137,7 @@ parseFilePath :: OP.Parser FilePath
 parseFilePath = OP.strOption (
     OP.long "baseDir" <>
     OP.short 'd' <>
-    OP.help "root directory where to search for NASA modules"
+    OP.help "root directory where to search for NASSA modules"
     )
 
 parseRawOutput :: OP.Parser Bool
@@ -150,50 +150,50 @@ parseRawOutput = OP.switch (
 
 runList :: ListOptions -> IO ()
 runList (ListOptions baseDir rawOutput) = do
-    yamlCollection <- readNasaModuleCollection baseDir
+    yamlCollection <- readNassaModuleCollection baseDir
     printModuleTable rawOutput yamlCollection
 
-readNasaModuleCollection :: FilePath -> IO [NasaYamlStruct]
-readNasaModuleCollection baseDir = do
-    hPutStrLn stderr "Searching NASA.yml files... "
-    yamlFilePaths <- findAllNasaYamlFiles baseDir
+readNassaModuleCollection :: FilePath -> IO [NassaYamlStruct]
+readNassaModuleCollection baseDir = do
+    hPutStrLn stderr "Searching NASSA.yml files... "
+    yamlFilePaths <- findAllNassaYamlFiles baseDir
     hPutStrLn stderr $ show (length yamlFilePaths) ++ " found"
-    hPutStrLn stderr "Loading NASA modules... "
-    eitherYamls <- mapM (try . readNasaYaml) yamlFilePaths :: IO [Either NasaException NasaYamlStruct]
+    hPutStrLn stderr "Loading NASSA modules... "
+    eitherYamls <- mapM (try . readNassaYaml) yamlFilePaths :: IO [Either NassaException NassaYamlStruct]
     unless (null . lefts $ eitherYamls) $ do
         hPutStrLn stderr "Some modules were skipped:"
         forM_ (zip yamlFilePaths eitherYamls) $ \(posF, epac) -> do
             case epac of
                 Left e -> do
-                    hPutStrLn stderr (renderNasaException e)
+                    hPutStrLn stderr (renderNassaException e)
                 _ -> return ()
     let loadedYamlFiles = rights eitherYamls
     hPutStrLn stderr $ (show . length $ loadedYamlFiles) ++ " loaded"
     return loadedYamlFiles
 
-findAllNasaYamlFiles :: FilePath -> IO [FilePath]
-findAllNasaYamlFiles baseDir = do
+findAllNassaYamlFiles :: FilePath -> IO [FilePath]
+findAllNassaYamlFiles baseDir = do
     entries <- listDirectory baseDir
-    let curFiles = map (baseDir </>) $ filter (=="NASA.yml") $ map takeFileName entries
+    let curFiles = map (baseDir </>) $ filter (=="NASSA.yml") $ map takeFileName entries
     subDirs <- filterM doesDirectoryExist . map (baseDir </>) $ entries
-    moreFiles <- fmap concat . mapM findAllNasaYamlFiles $ subDirs
+    moreFiles <- fmap concat . mapM findAllNassaYamlFiles $ subDirs
     return $ curFiles ++ moreFiles
 
-readNasaYaml :: FilePath -> IO NasaYamlStruct
-readNasaYaml yamlPath = do
+readNassaYaml :: FilePath -> IO NassaYamlStruct
+readNassaYaml yamlPath = do
     yamlRaw <- B.readFile yamlPath
     case decodeEither' yamlRaw of
-        Left err  -> throwIO $ NasaYamlParseException yamlPath err
+        Left err  -> throwIO $ NassaYamlParseException yamlPath err
         Right pac -> return pac
 
-printModuleTable :: Bool -> [NasaYamlStruct] -> IO ()
+printModuleTable :: Bool -> [NassaYamlStruct] -> IO ()
 printModuleTable rawOutput modules = do
     let tableH = ["id", "title", "category", "language"]
         tableB = transpose [
-            map (show . _nasaYamlID) modules, 
-            map _nasaYamlTitle modules, 
-            map _nasaYamlCategory modules,
-            map (show . _nasaYamlLanguage) modules
+            map (show . _nassaYamlID) modules, 
+            map _nassaYamlTitle modules, 
+            map _nassaYamlCategory modules,
+            map (show . _nassaYamlLanguage) modules
             ]
     if rawOutput
     then putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
