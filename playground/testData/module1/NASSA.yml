@@ -25,4 +25,5 @@ docsCheckList:
   commentaryInCode: true
   pseudocodeText: true
   pseudocodeGraph: true
+readmeFile: path/to/file
 license: GPL-3

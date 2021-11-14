@@ -21,7 +21,9 @@ data NassaYamlStruct = NassaYamlStruct {
     , _nassaYamlProgrammingLanguage :: [ProgrammingLanguage]
     , _nassaYamlSoftwareDependencies :: [String]
     , _nassaYamlDocsCheckList :: DocsCheckList
-
+    , _nassaYamlReadmeFile :: Maybe FilePath
+    , _nassaYamlDocsDir :: Maybe FilePath
+    , _nassaYamlDesignDetailsFile :: Maybe FilePath
     , _nassaYamlLicense :: Maybe String
     } deriving (Show, Eq)
 
@@ -37,6 +39,9 @@ instance FromJSON NassaYamlStruct where
         <*> v .:  "programmingLanguages"
         <*> v .:  "softwareDependencies"
         <*> v .:  "docsCheckList"
+        <*> v .:? "readmeFile"
+        <*> v .:? "docsDir"
+        <*> v .:? "designDetailsFile"
         <*> v .:? "license"
 
 data Contributor = Contributor
