@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 
 import           Paths_nassa                 (version)
 
@@ -66,11 +67,11 @@ instance Show NassaLanguageStruct where
     show LanguageNetlogo = "Netlogo"
 
 instance FromJSON NassaLanguageStruct where
-    parseJSON = withText "language" $ \v -> case v of
+    parseJSON = withText "language" $ \case
         "R"         -> pure LanguageR
         "Python"    -> pure LanguagePython
         "Netlogo"   -> pure LanguageNetlogo
-        _           -> fail ("unknown Language")
+        _           -> fail "unknown Language"
 
 data NassaYamlStruct = NassaYamlStruct {
       _nassaYamlID :: Integer
