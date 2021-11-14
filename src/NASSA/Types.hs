@@ -20,7 +20,8 @@ data NassaYamlStruct = NassaYamlStruct {
     , _nassaRelatedReferences :: Maybe [String]
     , _nassaYamlProgrammingLanguage :: [ProgrammingLanguage]
     , _nassaYamlSoftwareDependencies :: [String]
-    -- , _nassaYamlInteractions :: Maybe NassaInteractionsStruct
+    , _nassaYamlDocsCheckList :: DocsCheckList
+
     , _nassaYamlLicense :: Maybe String
     } deriving (Show, Eq)
 
@@ -35,8 +36,8 @@ instance FromJSON NassaYamlStruct where
         <*> v .:? "relatedReferences"
         <*> v .:  "programmingLanguages"
         <*> v .:  "softwareDependencies"
-        -- <*> v .:?  "interactions"
-        <*> v .:?  "license"
+        <*> v .:  "docsCheckList"
+        <*> v .:? "license"
 
 data Contributor = Contributor
     { contributorName  :: String
@@ -50,17 +51,6 @@ instance FromJSON Contributor where
         <$> v .:  "name"
         <*> v .:  "email"
         <*> v .:? "orcid"
-
-
-data NassaInteractionsStruct = NassaInteractionsStruct {
-      _nassaInteractionsDependencies :: Maybe [Int],
-      _nassaInteractionsSuggests :: Maybe [Int]
-    } deriving (Show, Eq)
-
-instance FromJSON NassaInteractionsStruct where
-    parseJSON = withObject "NassaInteractionsStruct" $ \v -> NassaInteractionsStruct
-        <$> v .:   "dependencies"
-        <*> v .:   "suggests"
 
 data ProgrammingLanguage = 
       LanguageR 
@@ -79,3 +69,16 @@ instance FromJSON ProgrammingLanguage where
         "Python"    -> pure LanguagePython
         "Netlogo"   -> pure LanguageNetlogo
         other       -> fail $ "unknown Language: " ++ show other
+
+data DocsCheckList = DocsCheckList
+    { docsCheckListCommentaryInCode :: Bool
+    , docsCheckListPseudocodeText :: Bool
+    , docsCheckListPseudocodeGraph :: Bool
+    }
+    deriving (Show, Eq)
+
+instance FromJSON DocsCheckList where
+    parseJSON = withObject "docsCheckList" $ \v -> DocsCheckList
+        <$> v .:  "commentaryInCode"
+        <*> v .:  "pseudocodeText"
+        <*> v .:  "pseudocodeGraph"

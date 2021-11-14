@@ -21,4 +21,8 @@ programmingLanguages:
 softwareDependencies:
   - R >= v.3.6.0
   - libgdal >= 3.2.0
+docsCheckList:
+  commentaryInCode: true
+  pseudocodeText: true
+  pseudocodeGraph: true
 license: GPL-3
