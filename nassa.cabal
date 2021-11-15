@@ -1,7 +1,7 @@
 name:                nassa
 version:             0.1.0
-synopsis:            ...
-description:         ...
+synopsis:            A package to validate NASSA modules
+description:         NASSA maintains a library of agent-based-modelling algorithms in individual code modules. Each module is defined by a NASSA.yml file. nassa-hs validates these .yml files.
 license:             MIT
 license-file:        LICENSE
 author:              Clemens Schmid
