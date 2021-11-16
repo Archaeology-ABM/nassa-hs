@@ -67,8 +67,8 @@ printModuleTable rawOutput modules = do
         tableB = transpose [
               map _nassaYamlID modules
             , map _nassaYamlTitle modules
-            , map (contributorName . head . _nassaYamlContributors) modules
-            , map (intercalate "," . map show . _nassaYamlProgrammingLanguage) modules
+            , map (_contributorName . head . _nassaYamlContributors) modules
+            , map (show . _nassaYamlProgrammingLanguage) modules
             ]
     if rawOutput
     then putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]

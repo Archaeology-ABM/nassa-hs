@@ -7,6 +7,7 @@ contributors:
     orcid: 1234-1234-1234-1234
   - name: Hanna Testlurch
     email: lurch@lake.com
+    orcid: 4321-4321-4321-4321
 lastUpdateDate: 2021-11-14
 description: >
   This is a very green implementation of a random walk.
@@ -15,9 +16,21 @@ description: >
 relatedReferences:
   - Clark, G. The invasion hypothesis in British archaeology. Antiquity 40, 172–189 (1966)
   - Patterson, N. et al. Ancient admixture in human history. Genetics 192, 1065–1093 (2012)
-programmingLanguages:
-  - R
-  - Netlogo
+domainKeywords:
+  regions:
+    - Near East
+    - North Africa
+  periods:
+    - Umayyad Caliphate
+modellingKeywords:
+  - Random Walk
+  - Agent-based-modelling
+  - Epidemiology
+  - Geodesic grid world
+programmingKeywords:
+  - Object-oriented programming
+  - Nondeterministic algorithm
+programmingLanguages: Netlogo
 softwareDependencies:
   - R >= v.3.6.0
   - libgdal >= 3.2.0

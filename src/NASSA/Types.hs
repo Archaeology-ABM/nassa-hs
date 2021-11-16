@@ -17,8 +17,11 @@ data NassaYamlStruct = NassaYamlStruct {
     , _nassaYamlContributors :: [Contributor]
     , _nassaYamlLastUpdateDate :: Day
     , _nassaYamlDescription :: String
-    , _nassaRelatedReferences :: Maybe [String]
-    , _nassaYamlProgrammingLanguage :: [ProgrammingLanguage]
+    , _nassaYamlRelatedReferences :: Maybe [String]
+    , _nassaYamlDomainKeywords :: Maybe DomainKeyword
+    , _nassaYamlModellingKeywords :: [String]
+    , _nassaYamlProgrammingKeywords :: [String]
+    , _nassaYamlProgrammingLanguage :: ProgrammingLanguage
     , _nassaYamlSoftwareDependencies :: [String]
     , _nassaYamlDocsCheckList :: DocsCheckList
     , _nassaYamlReadmeFile :: Maybe FilePath
@@ -36,6 +39,9 @@ instance FromJSON NassaYamlStruct where
         <*> v .:  "lastUpdateDate"
         <*> v .:  "description"
         <*> v .:? "relatedReferences"
+        <*> v .:? "domainKeywords"
+        <*> v .:  "modellingKeywords"
+        <*> v .:  "programmingKeywords"
         <*> v .:  "programmingLanguages"
         <*> v .:  "softwareDependencies"
         <*> v .:  "docsCheckList"
@@ -45,9 +51,9 @@ instance FromJSON NassaYamlStruct where
         <*> v .:? "license"
 
 data Contributor = Contributor
-    { contributorName  :: String
-    , contributorEmail :: String
-    , contributorORCID :: Maybe String
+    { _contributorName  :: String
+    , _contributorEmail :: String
+    , _contributorORCID :: String
     }
     deriving (Show, Eq)
 
@@ -55,7 +61,20 @@ instance FromJSON Contributor where
     parseJSON = withObject "contributors" $ \v -> Contributor
         <$> v .:  "name"
         <*> v .:  "email"
-        <*> v .:? "orcid"
+        <*> v .:  "orcid"
+
+data DomainKeyword = DomainKeyword
+    { _keywordSubjects :: Maybe [String]
+    , _keywordRegions :: Maybe [String]
+    , _keywordPeriods :: Maybe [String]
+    }
+    deriving (Show, Eq)
+
+instance FromJSON DomainKeyword where
+    parseJSON = withObject "domainKeywords" $ \v -> DomainKeyword
+        <$> v .:? "subjects"
+        <*> v .:? "regions"
+        <*> v .:? "periods"
 
 data ProgrammingLanguage = 
       LanguageR 
@@ -76,9 +95,9 @@ instance FromJSON ProgrammingLanguage where
         other       -> fail $ "unknown Language: " ++ show other
 
 data DocsCheckList = DocsCheckList
-    { docsCheckListCommentaryInCode :: Bool
-    , docsCheckListPseudocodeText :: Bool
-    , docsCheckListPseudocodeGraph :: Bool
+    { _docsCheckListCommentaryInCode :: Bool
+    , _docsCheckListPseudocodeText :: Bool
+    , _docsCheckListPseudocodeGraph :: Bool
     }
     deriving (Show, Eq)
 
