@@ -8,11 +8,12 @@ import           Data.Aeson                 (FromJSON,
                                              parseJSON, withObject,
                                              (.:), (.:?), withText, 
                                              Value (String))
+import qualified Data.Text.Encoding         as TS
 import           Data.Time                  (Day)
 import           Data.Version               (Version)
 import qualified Text.Parsec                as P
 import qualified Text.Parsec.Text           as P
-
+import qualified Text.Email.Validate        as TEV
 
 data NassaYamlStruct = NassaYamlStruct {
       _nassaYamlID :: String
@@ -60,7 +61,7 @@ instance FromJSON NassaYamlStruct where
 
 data Contributor = Contributor
     { _contributorName  :: String
-    , _contributorEmail :: String
+    , _contributorEmail :: Email
     , _contributorORCID :: ORCID
     }
     deriving (Show, Eq)
@@ -70,6 +71,16 @@ instance FromJSON Contributor where
         <$> v .: "name"
         <*> v .: "email"
         <*> v .: "orcid"
+
+newtype Email = Email TEV.EmailAddress
+    deriving (Show, Eq)
+
+-- https://hackage.haskell.org/package/email-validate-json-0.1.0.0
+instance FromJSON Email where
+    parseJSON (String s) = case TEV.emailAddress (TS.encodeUtf8 s) of
+        Nothing -> fail "not a valid email address"
+        Just x  -> pure $ Email x
+    parseJSON _ = mzero
 
 newtype ORCID = ORCID String
     deriving (Show, Eq)
