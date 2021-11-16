@@ -29,7 +29,7 @@ data NassaYamlStruct = NassaYamlStruct {
     , _nassaYamlSoftwareDependencies :: [String]
     , _nassaYamlInputs :: Maybe [InOrOutput]
     , _nassaYamlOutputs :: Maybe [InOrOutput]
-    , _nassaYamlDocsCheckList :: DocsCheckList
+    -- , _nassaYamlDocsCheckList :: DocsCheckList
     , _nassaYamlReadmeFile :: Maybe FilePath
     , _nassaYamlDocsDir :: Maybe FilePath
     , _nassaYamlDesignDetailsFile :: Maybe FilePath
@@ -52,7 +52,7 @@ instance FromJSON NassaYamlStruct where
         <*> v .:  "softwareDependencies"
         <*> v .:? "inputs"
         <*> v .:? "outputs"
-        <*> v .:  "docsCheckList"
+        -- <*> v .:  "docsCheckList"
         <*> v .:? "readmeFile"
         <*> v .:? "docsDir"
         <*> v .:? "designDetailsFile"
@@ -137,15 +137,15 @@ instance FromJSON InOrOutput where
         <*> v .:? "unit"
         <*> v .:? "description"
 
-data DocsCheckList = DocsCheckList
-    { _docsCheckListCommentaryInCode :: Bool
-    , _docsCheckListPseudocodeText :: Bool
-    , _docsCheckListPseudocodeGraph :: Bool
-    }
-    deriving (Show, Eq)
+-- data DocsCheckList = DocsCheckList
+--     { _docsCheckListCommentaryInCode :: Bool
+--     , _docsCheckListPseudocodeText :: Bool
+--     , _docsCheckListPseudocodeGraph :: Bool
+--     }
+--     deriving (Show, Eq)
 
-instance FromJSON DocsCheckList where
-    parseJSON = withObject "docsCheckList" $ \v -> DocsCheckList
-        <$> v .:  "commentaryInCode"
-        <*> v .:  "pseudocodeText"
-        <*> v .:  "pseudocodeGraph"
+-- instance FromJSON DocsCheckList where
+--     parseJSON = withObject "docsCheckList" $ \v -> DocsCheckList
+--         <$> v .:  "commentaryInCode"
+--         <*> v .:  "pseudocodeText"
+--         <*> v .:  "pseudocodeGraph"
