@@ -1,6 +1,6 @@
 # nassa-hs
 
-`nassa` is a small CLI tool that searches, parses and lists modules. As parsing failes for broken yaml files we get validation for free.
+`nassa` is a small CLI tool that searches, validates and lists NASSA modules.
 
 See a collection of example modules in `playground/`, which can be validated and listed with
 

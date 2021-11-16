@@ -31,7 +31,7 @@ runCmd o = case o of
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
     OP.briefDesc <>
-    OP.progDesc "nassa"
+    OP.progDesc "nassa searches, validates and lists NASSA modules"
     )
 
 versionOption :: OP.Parser (a -> a)
