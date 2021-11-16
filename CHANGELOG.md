@@ -1,0 +1,1 @@
+- V 0.1.0: First prototype for a representative selection of variables in NASSA.yml files
