@@ -43,6 +43,7 @@ readNassaModuleCollection baseDir = do
                     hPutStrLn stderr (renderNassaException e)
                 _ -> return ()
     let loadedYamlFiles = rights eitherYamls
+    hPutStrLn stderr "***"
     hPutStrLn stderr $ (show . length $ loadedYamlFiles) ++ " loaded"
     return loadedYamlFiles
 
