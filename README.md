@@ -1,6 +1,6 @@
 # nassa-hs
 
-`nassa-hs` is a small CLI tool that searches, parses and lists modules. As parsing failes for broken yaml files we get validation for free.
+`nassa` is a small CLI tool that searches, parses and lists modules. As parsing failes for broken yaml files we get validation for free.
 
 See a collection of example modules in `playground/`, which can be validated and listed with
 
@@ -12,13 +12,13 @@ nassa list -d .
 
 For stable release versions we automatically prepare binaries that can be downloaded and run without further installation.
 
-You can download them here: [ [Linux 📥](https://github.com/Archaeology-ABM/nassa/releases/latest/download/nassa-Linux) | [macOS 📥](https://github.com/Archaeology-ABM/nassa/releases/latest/download/nassa-macOS) | [Windows 📥](https://github.com/Archaeology-ABM/nassa/releases/latest/download/nassa-Windows.exe) ]. Older release versions are available [here](https://github.com/Archaeology-ABM/nassa/releases).
+You can download them here: [ [Linux 📥](https://github.com/Archaeology-ABM/nassa-hs/releases/latest/download/nassa-Linux) | [macOS 📥](https://github.com/Archaeology-ABM/nassa-hs/releases/latest/download/nassa-macOS) | [Windows 📥](https://github.com/Archaeology-ABM/nassa-hs/releases/latest/download/nassa-Windows.exe) ]. Older release versions are available [here](https://github.com/Archaeology-ABM/nassa-hs/releases).
 
 So in Linux you can run the following commands to get started:
 
 ```bash
 # download the current stable release binary
-wget https://github.com/Archaeology-ABM/nassa/releases/latest/download/nassa-Linux
+wget https://github.com/Archaeology-ABM/nassa-hs/releases/latest/download/nassa-Linux
 # make it executable
 chmod +x nassa-Linux
 # test it
