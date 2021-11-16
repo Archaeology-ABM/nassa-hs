@@ -1,13 +1,17 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 
 module NASSA.Types where
 
+import           Control.Monad              (mzero)
 import           Data.Aeson                 (FromJSON,
                                              parseJSON, withObject,
-                                             (.:), (.:?), withText)
+                                             (.:), (.:?), withText, 
+                                             Value (String))
 import           Data.Time                  (Day)
 import           Data.Version               (Version)
+import qualified Text.Parsec                as P
+import qualified Text.Parsec.Text           as P
 
 
 data NassaYamlStruct = NassaYamlStruct {
@@ -57,15 +61,35 @@ instance FromJSON NassaYamlStruct where
 data Contributor = Contributor
     { _contributorName  :: String
     , _contributorEmail :: String
-    , _contributorORCID :: String
+    , _contributorORCID :: ORCID
     }
     deriving (Show, Eq)
 
 instance FromJSON Contributor where
     parseJSON = withObject "contributors" $ \v -> Contributor
-        <$> v .:  "name"
-        <*> v .:  "email"
-        <*> v .:  "orcid"
+        <$> v .: "name"
+        <*> v .: "email"
+        <*> v .: "orcid"
+
+newtype ORCID = ORCID String
+    deriving (Show, Eq)
+
+instance FromJSON ORCID where
+    parseJSON (String s) = case P.runParser parseORCID () "" s of
+        Left err -> fail $ show err
+        Right x  -> pure x
+    parseJSON _          = mzero
+
+parseORCID :: P.Parser ORCID
+parseORCID = do
+  s <- (\a b c d -> [a,b,c,d]) <$> nums <* m 
+                               <*> nums <* m 
+                               <*> nums <* m 
+                               <*> nums <* P.eof
+  return $ ORCID $ concat s
+  where
+      nums = P.count 4 P.digit
+      m = P.oneOf "-"
 
 data DomainKeyword = DomainKeyword
     { _keywordSubjects :: Maybe [String]
