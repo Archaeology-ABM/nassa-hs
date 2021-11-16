@@ -34,6 +34,16 @@ programmingLanguages: Netlogo
 softwareDependencies:
   - R >= v.3.6.0
   - libgdal >= 3.2.0
+inputs:
+  - name: Number of agents (nr_agents)
+    type: Integer
+    description: How many agents should be running around?
+  - name: World grid tessellation (type_tesselation)
+    type: String
+    description: Should the world be tessellated? One of "rect", "hex"
+outputs:
+  - name: Number of dead agents after 100 iterations
+    type: Integer
 docsCheckList:
   commentaryInCode: true
   pseudocodeText: true

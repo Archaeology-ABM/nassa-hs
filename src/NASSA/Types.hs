@@ -23,6 +23,8 @@ data NassaYamlStruct = NassaYamlStruct {
     , _nassaYamlProgrammingKeywords :: [String]
     , _nassaYamlProgrammingLanguage :: ProgrammingLanguage
     , _nassaYamlSoftwareDependencies :: [String]
+    , _nassaYamlInputs :: Maybe [InOrOutput]
+    , _nassaYamlOutputs :: Maybe [InOrOutput]
     , _nassaYamlDocsCheckList :: DocsCheckList
     , _nassaYamlReadmeFile :: Maybe FilePath
     , _nassaYamlDocsDir :: Maybe FilePath
@@ -44,6 +46,8 @@ instance FromJSON NassaYamlStruct where
         <*> v .:  "programmingKeywords"
         <*> v .:  "programmingLanguages"
         <*> v .:  "softwareDependencies"
+        <*> v .:? "inputs"
+        <*> v .:? "outputs"
         <*> v .:  "docsCheckList"
         <*> v .:? "readmeFile"
         <*> v .:? "docsDir"
@@ -93,6 +97,21 @@ instance FromJSON ProgrammingLanguage where
         "Python"    -> pure LanguagePython
         "Netlogo"   -> pure LanguageNetlogo
         other       -> fail $ "unknown Language: " ++ show other
+
+data InOrOutput = InOrOutput
+    { _inOrOutputName :: String
+    , _inOrOutputType :: Maybe String
+    , _inOrOutputUnit :: Maybe String
+    , _inOrOutputDescription :: Maybe String
+    }
+    deriving (Show, Eq)
+
+instance FromJSON InOrOutput where
+    parseJSON = withObject "inputs or outputs" $ \v -> InOrOutput
+        <$> v .:  "name"
+        <*> v .:? "type"
+        <*> v .:? "unit"
+        <*> v .:? "description"
 
 data DocsCheckList = DocsCheckList
     { _docsCheckListCommentaryInCode :: Bool
