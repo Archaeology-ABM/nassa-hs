@@ -29,7 +29,7 @@ chmod +x nassa-Linux
 
 #### Windows
 
-In Windows 10, you may encounter a problem when downloading the executable file ("nassa-Windows.exe"). Please follow the [instructions](https://github.com/Archaeology-ABM/nassa-hs/tree/main/instructions-windows/instructions-windows.md) that will allow you to access and use the file.
+In Windows 10, you may encounter a problem when downloading the executable file ("nassa-Windows.exe"). Please follow the [instructions](https://github.com/Archaeology-ABM/nassa-hs/blob/main/instructions-windows/images/instructions-windows.md) that will allow you to access and use the file.
 
 Once you have access to the file and moved it to the preferred location, open Command Prompt (you can search for it by typing "Command Prompt" in the task bar). Move to the file location by typing "cd", SPACE, and the full directory path, by either typing it or dragging-and-dropping the folder containing the file from the File Explorer to the Command Prompt window, and then hit Intro. Note that you may need to change hard drives before changing directories; this can be done by typing the drive letter followed by colon and hitting Intro. For example:
 
@@ -49,7 +49,7 @@ E:\my-local-folder\>nassa-Windows.exe list -d E:\another-local-folder\
 
 The output will be printed in the Command Prompt screen. Successfully validated modules will be displayed in a table while any issues in validation will produce exception warnings showing which yml file could not be validated and the line causing the error.
 
-![example of output](https://github.com/Archaeology-ABM/nassa-hs/tree/main/instructions-windows/images/command-prompt-output.png)
+![example of output](https://github.com/Archaeology-ABM/nassa-hs/blob/main/instructions-windows/images/command-prompt-output.png)
 
 ### For developers
 
