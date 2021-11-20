@@ -66,7 +66,10 @@ instance FromJSON NassaYamlStruct where
         <*> v .:? "license"
 
 newtype ModuleTitle = ModuleTitle String
-    deriving (Show, Eq)
+    deriving (Eq)
+
+instance Show ModuleTitle where
+    show (ModuleTitle s) = s
 
 instance FromJSON ModuleTitle where
     parseJSON (String s) =

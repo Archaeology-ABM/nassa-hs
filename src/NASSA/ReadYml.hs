@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 module NASSA.ReadYml where
 
 import           NASSA.Types
@@ -8,7 +9,8 @@ import           Control.Monad              (filterM, unless, forM_)
 import qualified Data.ByteString            as B
 import           Data.Either                (lefts, rights)
 import           Data.Yaml                  (decodeEither')
-import           System.Directory           (doesDirectoryExist, listDirectory)
+import           System.Directory           (doesDirectoryExist, doesFileExist, 
+                                             listDirectory)
 import           System.FilePath            ((</>), takeFileName, takeDirectory)
 import           System.IO                  (hPutStrLn, stderr)
 
@@ -19,20 +21,26 @@ readNassaModuleCollection baseDir = do
     yamlFilePaths <- findAllNassaYamlFiles baseDir
     hPutStrLn stderr $ show (length yamlFilePaths) ++ " found"
     -- parse yml files
-    hPutStrLn stderr "Loading NASSA modules... "
+    hPutStrLn stderr "Loading NASSA.yml files... "
     eitherYamls <- mapM (try . readNassaYaml) yamlFilePaths :: IO [Either NassaException NassaModule]
     unless (null . lefts $ eitherYamls) $ do
         hPutStrLn stderr "Some files were skipped:"
-        forM_ (zip yamlFilePaths eitherYamls) $ \(_, epac) -> do
-            case epac of
-                Left e -> do
-                    hPutStrLn stderr (renderNassaException e)
-                _ -> return ()
+        forM_ eitherYamls $ \case
+            Left e -> hPutStrLn stderr (renderNassaException e)
+            _ -> return ()
+    -- integrity checks
     let loadedYamlFiles = rights eitherYamls
-
+    eitherModules <- mapM (try . checkIntegrity) loadedYamlFiles :: IO [Either NassaException NassaModule]
+    unless (null . lefts $ eitherModules) $ do
+        hPutStrLn stderr "Some modules are broken:"
+        forM_ eitherModules $ \case
+            Left e -> hPutStrLn stderr (renderNassaException e)
+            _ -> return ()
+    -- report success
+    let goodModules = rights eitherModules
     hPutStrLn stderr "***"
-    hPutStrLn stderr $ (show . length $ loadedYamlFiles) ++ " loaded"
-    return loadedYamlFiles
+    hPutStrLn stderr $ (show . length $ goodModules) ++ " loaded"
+    return goodModules
 
 findAllNassaYamlFiles :: FilePath -> IO [FilePath]
 findAllNassaYamlFiles baseDir = do
@@ -48,3 +56,15 @@ readNassaYaml yamlPath = do
     case decodeEither' yamlRaw of
         Left err  -> throwIO $ NassaYamlParseException yamlPath err
         Right pac -> return $ NassaModule (takeDirectory yamlPath, pac)
+
+checkIntegrity :: NassaModule -> IO NassaModule
+checkIntegrity (NassaModule (baseDir, yamlStruct)) = do
+    case _nassaYamlReadmeFile yamlStruct of
+        Nothing -> return ()
+        Just p -> do 
+            fe <- doesFileExist $ baseDir </> p
+            unless fe $ throwIO (
+                NassaModuleIntegrity (_nassaYamlID yamlStruct) $
+                "README file " ++ show p ++ " does not exist"
+                )
+    return (NassaModule (baseDir, yamlStruct))

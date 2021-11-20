@@ -20,13 +20,13 @@ runList (ListOptions baseDir rawOutput) = do
 
 printModuleTable :: Bool -> [NassaModule] -> IO ()
 printModuleTable rawOutput modules = do
-    let ymlStruct = map (\(NassaModule (_,x)) -> x) modules
+    let yamlStruct = map (\(NassaModule (_,x)) -> x) modules
     let tableH = ["id", "title", "first author", "language"]
         tableB = transpose [
-              map _nassaYamlID ymlStruct
-            , map ((\(ModuleTitle s) -> s) . _nassaYamlTitle) ymlStruct
-            , map (_contributorName . head . _nassaYamlContributors) ymlStruct
-            , map (show . _nassaYamlProgrammingLanguage) ymlStruct
+              map _nassaYamlID yamlStruct
+            , map (show . _nassaYamlTitle) yamlStruct
+            , map (_contributorName . head . _nassaYamlContributors) yamlStruct
+            , map (show . _nassaYamlProgrammingLanguage) yamlStruct
             ]
     if rawOutput
     then putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
