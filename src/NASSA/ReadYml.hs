@@ -59,12 +59,18 @@ readNassaYaml yamlPath = do
 
 checkIntegrity :: NassaModule -> IO NassaModule
 checkIntegrity (NassaModule (baseDir, yamlStruct)) = do
-    case _nassaYamlReadmeFile yamlStruct of
-        Nothing -> return ()
-        Just p -> do 
-            fe <- doesFileExist $ baseDir </> p
-            unless fe $ throwIO (
-                NassaModuleIntegrity (_nassaYamlID yamlStruct) $
-                "README file " ++ show p ++ " does not exist"
-                )
+    checkExistence doesFileExist _nassaYamlReadmeFile "readmeFile"
+    checkExistence doesDirectoryExist _nassaYamlDocsDir "docsDir"
+    checkExistence doesFileExist _nassaYamlDesignDetailsFile "designDetailsFile"
     return (NassaModule (baseDir, yamlStruct))
+    where
+        nassaID = _nassaYamlID yamlStruct
+        checkExistence f el elS = 
+            case el yamlStruct of
+                Nothing -> return ()
+                Just p -> do 
+                    fe <- f $ baseDir </> p
+                    unless fe $ throwIO (
+                        NassaModuleIntegrityException nassaID $
+                        elS ++ " " ++ show p ++ " does not exist"
+                        )
