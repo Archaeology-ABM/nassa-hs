@@ -44,5 +44,4 @@ inputs:
 outputs:
   - name: Number of dead agents after 100 iterations
     type: Integer
-docsDir: ghuhu
 license: GPL-3
