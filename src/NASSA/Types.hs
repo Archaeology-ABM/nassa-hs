@@ -16,6 +16,11 @@ import qualified Text.Parsec                as P
 import qualified Text.Parsec.Text           as P
 import qualified Text.Email.Validate        as TEV
 
+
+
+newtype NassaModule = NassaModule (FilePath, NassaYamlStruct)
+    deriving (Show, Eq)
+
 data NassaYamlStruct = NassaYamlStruct {
       _nassaYamlID :: String
     , _nassaYamlTitle :: ModuleTitle
