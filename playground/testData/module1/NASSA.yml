@@ -30,7 +30,7 @@ modellingKeywords:
 programmingKeywords:
   - Object-oriented programming
   - Nondeterministic algorithm
-programmingLanguages: Netlogo
+programmingLanguages: NetLogo
 softwareDependencies:
   - R >= v.3.6.0
   - libgdal >= 3.2.0

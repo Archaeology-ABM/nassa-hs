@@ -64,10 +64,10 @@ readNassaYaml yamlPath = do
 
 printModuleTable :: Bool -> [NassaYamlStruct] -> IO ()
 printModuleTable rawOutput modules = do
-    let tableH = ["id", "title", "first author", "languages"]
+    let tableH = ["id", "title", "first author", "language"]
         tableB = transpose [
               map _nassaYamlID modules
-            , map _nassaYamlTitle modules
+            , map ((\(ModuleTitle s) -> s) . _nassaYamlTitle) modules
             , map (_contributorName . head . _nassaYamlContributors) modules
             , map (show . _nassaYamlProgrammingLanguage) modules
             ]
