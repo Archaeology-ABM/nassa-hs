@@ -8,6 +8,7 @@ import           Data.Aeson                 (FromJSON,
                                              parseJSON, withObject,
                                              (.:), (.:?), withText, 
                                              Value (String))
+import qualified Data.Text                  as T
 import qualified Data.Text.Encoding         as TS
 import           Data.Time                  (Day)
 import           Data.Version               (Version)
@@ -15,9 +16,14 @@ import qualified Text.Parsec                as P
 import qualified Text.Parsec.Text           as P
 import qualified Text.Email.Validate        as TEV
 
+
+
+newtype NassaModule = NassaModule (FilePath, NassaYamlStruct)
+    deriving (Show, Eq)
+
 data NassaYamlStruct = NassaYamlStruct {
       _nassaYamlID :: String
-    , _nassaYamlTitle :: String
+    , _nassaYamlTitle :: ModuleTitle
     , _nassaYamlModuleVersion :: Version
     , _nassaYamlContributors :: [Contributor]
     , _nassaYamlLastUpdateDate :: Day
@@ -58,6 +64,19 @@ instance FromJSON NassaYamlStruct where
         <*> v .:? "docsDir"
         <*> v .:? "designDetailsFile"
         <*> v .:? "license"
+
+newtype ModuleTitle = ModuleTitle String
+    deriving (Eq)
+
+instance Show ModuleTitle where
+    show (ModuleTitle s) = s
+
+instance FromJSON ModuleTitle where
+    parseJSON (String s) =
+        if T.length s <= 100
+        then pure $ ModuleTitle $ T.unpack s
+        else fail "module title must not be longer than 100 characters"
+    parseJSON _ = mzero
 
 data Contributor = Contributor
     { _contributorName  :: String
@@ -118,19 +137,34 @@ instance FromJSON DomainKeyword where
 data ProgrammingLanguage = 
       LanguageR 
     | LanguagePython
-    | LanguageNetlogo
+    | LanguageNetLogo
+    | LanguageJava
+    | LanguageJulia
+    | LanguageCsharp
+    | LanguageRuby
+    | LanguageProcessing
     deriving (Eq)
 
 instance Show ProgrammingLanguage where
     show LanguageR = "R"
     show LanguagePython = "Python"
-    show LanguageNetlogo = "Netlogo"
+    show LanguageNetLogo = "NetLogo"
+    show LanguageJava = "Java"
+    show LanguageJulia = "Julia"
+    show LanguageCsharp = "C#"
+    show LanguageRuby = "Ruby"
+    show LanguageProcessing = "Processing"
 
 instance FromJSON ProgrammingLanguage where
     parseJSON = withText "programmingLanguage" $ \case
         "R"         -> pure LanguageR
         "Python"    -> pure LanguagePython
-        "Netlogo"   -> pure LanguageNetlogo
+        "NetLogo"   -> pure LanguageNetLogo
+        "Java"   -> pure LanguageJava
+        "Julia"   -> pure LanguageJulia
+        "C#"   -> pure LanguageCsharp
+        "Ruby"   -> pure LanguageRuby
+        "Processing"   -> pure LanguageProcessing
         other       -> fail $ "unknown Language: " ++ show other
 
 data InOrOutput = InOrOutput
