@@ -138,33 +138,18 @@ data ProgrammingLanguage =
       LanguageR 
     | LanguagePython
     | LanguageNetLogo
-    | LanguageJava
-    | LanguageJulia
-    | LanguageCsharp
-    | LanguageRuby
-    | LanguageProcessing
     deriving (Eq)
 
 instance Show ProgrammingLanguage where
     show LanguageR = "R"
     show LanguagePython = "Python"
     show LanguageNetLogo = "NetLogo"
-    show LanguageJava = "Java"
-    show LanguageJulia = "Julia"
-    show LanguageCsharp = "C#"
-    show LanguageRuby = "Ruby"
-    show LanguageProcessing = "Processing"
 
 instance FromJSON ProgrammingLanguage where
     parseJSON = withText "programmingLanguage" $ \case
         "R"         -> pure LanguageR
         "Python"    -> pure LanguagePython
         "NetLogo"   -> pure LanguageNetLogo
-        "Java"   -> pure LanguageJava
-        "Julia"   -> pure LanguageJulia
-        "C#"   -> pure LanguageCsharp
-        "Ruby"   -> pure LanguageRuby
-        "Processing"   -> pure LanguageProcessing
         other       -> fail $ "unknown Language: " ++ show other
 
 data InOrOutput = InOrOutput

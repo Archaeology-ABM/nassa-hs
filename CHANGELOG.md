@@ -1,1 +1,2 @@
+- V 0.2.0: Some small changes to NASSA.yml field checks, some general refactoring and added checks if files/dirs referenced in the .yml file actually exist
 - V 0.1.0: First prototype for a representative selection of variables in NASSA.yml files

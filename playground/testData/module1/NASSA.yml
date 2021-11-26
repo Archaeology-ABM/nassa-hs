@@ -30,7 +30,7 @@ modellingKeywords:
 programmingKeywords:
   - Object-oriented programming
   - Nondeterministic algorithm
-programmingLanguages: Netlogo
+programmingLanguages: NetLogo
 softwareDependencies:
   - R >= v.3.6.0
   - libgdal >= 3.2.0
@@ -44,5 +44,4 @@ inputs:
 outputs:
   - name: Number of dead agents after 100 iterations
     type: Integer
-readmeFile: path/to/file
 license: GPL-3
