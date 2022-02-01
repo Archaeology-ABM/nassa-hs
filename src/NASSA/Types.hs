@@ -29,6 +29,7 @@ data NassaModuleYamlStruct = NassaModuleYamlStruct {
     , _nassaYamlContributors :: [Contributor]
     , _nassaYamlLastUpdateDate :: Day
     , _nassaYamlDescription :: String
+    , _nassaYamlRelatedModules:: Maybe [ModuleID]
     , _nassaYamlRelatedReferences :: Maybe [String]
     , _nassaYamlDomainKeywords :: Maybe DomainKeyword
     , _nassaYamlModellingKeywords :: [String]
@@ -53,6 +54,7 @@ instance FromJSON NassaModuleYamlStruct where
         <*> v .:  "contributors"
         <*> v .:  "lastUpdateDate"
         <*> v .:  "description"
+        <*> v .:? "relatedModules"
         <*> v .:? "relatedReferences"
         <*> v .:? "domainKeywords"
         <*> v .:  "modellingKeywords"
