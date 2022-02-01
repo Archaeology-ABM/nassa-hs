@@ -8,6 +8,7 @@ import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, unless, forM_)
 import qualified Data.ByteString            as B
 import           Data.Either                (lefts, rights)
+import           Data.List                  (intercalate)
 import           Data.Yaml                  (decodeEither')
 import           System.Directory           (doesDirectoryExist, doesFileExist, 
                                              listDirectory)
@@ -62,15 +63,23 @@ checkIntegrity (NassaModule (baseDir, yamlStruct)) = do
     checkExistence doesFileExist _nassaYamlReadmeFile "readmeFile"
     checkExistence doesDirectoryExist _nassaYamlDocsDir "docsDir"
     checkExistence doesFileExist _nassaYamlDesignDetailsFile "designDetailsFile"
+    checkCodeDirsExistence
     return (NassaModule (baseDir, yamlStruct))
     where
         nassaID = _nassaYamlID yamlStruct
+        checkExistence :: (FilePath -> IO Bool) -> (NassaModuleYamlStruct -> Maybe FilePath) -> [Char] -> IO ()
         checkExistence f el elS = 
             case el yamlStruct of
                 Nothing -> return ()
                 Just p -> do 
                     fe <- f $ baseDir </> p
-                    unless fe $ throwIO (
+                    unless fe $ throwIO $
                         NassaModuleIntegrityException nassaID $
                         elS ++ " " ++ show p ++ " does not exist"
-                        )
+        checkCodeDirsExistence :: IO ()
+        checkCodeDirsExistence = do
+            let codeDirs = map _implementationCodeDir $ _nassaYamlImplementations yamlStruct
+            codeDirsExist <- mapM (\x -> doesDirectoryExist $ baseDir </> x) codeDirs
+            unless (and codeDirsExist) $ throwIO $
+                NassaModuleIntegrityException nassaID $
+                "One of the codeDirs (" ++ intercalate ", " codeDirs ++ ") does not exist"
