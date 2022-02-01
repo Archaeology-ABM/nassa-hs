@@ -23,6 +23,7 @@ newtype NassaModule = NassaModule (FilePath, NassaModuleYamlStruct)
 
 data NassaModuleYamlStruct = NassaModuleYamlStruct {
       _nassaYamlID :: String
+    , _nassaYamlModuleType :: ModuleType
     , _nassaYamlTitle :: ModuleTitle
     , _nassaYamlModuleVersion :: Version
     , _nassaYamlContributors :: [Contributor]
@@ -46,6 +47,7 @@ data NassaModuleYamlStruct = NassaModuleYamlStruct {
 instance FromJSON NassaModuleYamlStruct where
     parseJSON = withObject "NassaModuleYamlStruct" $ \v -> NassaModuleYamlStruct
         <$> v .:  "id"
+        <*> v .:  "moduleType"
         <*> v .:  "title"
         <*> v .:  "moduleVersion"
         <*> v .:  "contributors"
@@ -77,6 +79,21 @@ instance FromJSON ModuleTitle where
         then pure $ ModuleTitle $ T.unpack s
         else fail "module title must not be longer than 100 characters"
     parseJSON _ = mzero
+
+data ModuleType =
+      Algorithm
+    | Submodel
+    deriving (Eq)
+
+instance Show ModuleType where
+    show Algorithm = "Algorithm"
+    show Submodel = "Submodel"
+
+instance FromJSON ModuleType where
+    parseJSON = withText "programmingLanguage" $ \case
+        "Algorithm"    -> pure Algorithm
+        "Submodel"     -> pure Submodel
+        other          -> fail $ "unknown module type: " ++ show other
 
 data Contributor = Contributor
     { _contributorName  :: String
