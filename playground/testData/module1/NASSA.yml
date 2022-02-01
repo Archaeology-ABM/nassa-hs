@@ -14,6 +14,9 @@ description: >
   This is a very green implementation of a random walk.
   Very green!
   Believe me!
+relatedModules:
+  - 2021-Testbär-001
+  - 2022-Megatest-002
 relatedReferences:
   - Clark, G. The invasion hypothesis in British archaeology. Antiquity 40, 172–189 (1966)
   - Patterson, N. et al. Ancient admixture in human history. Genetics 192, 1065–1093 (2012)

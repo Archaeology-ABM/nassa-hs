@@ -22,7 +22,7 @@ newtype NassaModule = NassaModule (FilePath, NassaModuleYamlStruct)
     deriving (Show, Eq)
 
 data NassaModuleYamlStruct = NassaModuleYamlStruct {
-      _nassaYamlID :: String
+      _nassaYamlID :: ModuleID
     , _nassaYamlModuleType :: ModuleType
     , _nassaYamlTitle :: ModuleTitle
     , _nassaYamlModuleVersion :: Version
@@ -66,6 +66,17 @@ instance FromJSON NassaModuleYamlStruct where
         <*> v .:? "docsDir"
         <*> v .:? "designDetailsFile"
         <*> v .:? "license"
+
+
+newtype ModuleID = ModuleID String
+    deriving (Eq)
+
+instance Show ModuleID where
+    show (ModuleID s) = s
+
+instance FromJSON ModuleID where
+    parseJSON (String s) = pure $ ModuleID $ T.unpack s
+    parseJSON _ = mzero
 
 newtype ModuleTitle = ModuleTitle String
     deriving (Eq)

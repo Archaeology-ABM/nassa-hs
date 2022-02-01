@@ -23,7 +23,7 @@ printModuleTable rawOutput modules = do
     let yamlStruct = map (\(NassaModule (_,x)) -> x) modules
     let tableH = ["id", "title", "first author", "language"]
         tableB = transpose [
-              map _nassaYamlID yamlStruct
+              map (show . _nassaYamlID) yamlStruct
             , map (show . _nassaYamlTitle) yamlStruct
             , map (_contributorName . head . _nassaYamlContributors) yamlStruct
             , map (show . _nassaYamlProgrammingLanguage) yamlStruct
