@@ -18,10 +18,10 @@ import qualified Text.Email.Validate        as TEV
 
 
 
-newtype NassaModule = NassaModule (FilePath, NassaYamlStruct)
+newtype NassaModule = NassaModule (FilePath, NassaModuleYamlStruct)
     deriving (Show, Eq)
 
-data NassaYamlStruct = NassaYamlStruct {
+data NassaModuleYamlStruct = NassaModuleYamlStruct {
       _nassaYamlID :: String
     , _nassaYamlTitle :: ModuleTitle
     , _nassaYamlModuleVersion :: Version
@@ -43,8 +43,8 @@ data NassaYamlStruct = NassaYamlStruct {
     , _nassaYamlLicense :: Maybe String
     } deriving (Show, Eq)
 
-instance FromJSON NassaYamlStruct where
-    parseJSON = withObject "NassaYamlStruct" $ \v -> NassaYamlStruct
+instance FromJSON NassaModuleYamlStruct where
+    parseJSON = withObject "NassaModuleYamlStruct" $ \v -> NassaModuleYamlStruct
         <$> v .:  "id"
         <*> v .:  "title"
         <*> v .:  "moduleVersion"
