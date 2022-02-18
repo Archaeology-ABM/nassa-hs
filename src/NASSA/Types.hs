@@ -9,7 +9,6 @@ import           Data.Aeson                 (FromJSON,
                                              parseJSON, withObject,
                                              (.:), (.:?), withText, 
                                              Value (String))
-import           Data.Aeson.Types           (Parser)
 import qualified Data.Text                  as T
 import qualified Data.Text.Encoding         as TS
 import           Data.Time                  (Day)
