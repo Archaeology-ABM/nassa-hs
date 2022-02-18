@@ -109,7 +109,8 @@ instance FromJSON ModuleType where
         other          -> fail $ "unknown module type: " ++ show other
 
 data Contributor = Contributor
-    { _contributorName  :: String
+    { _contributorRole  :: [Role]
+    , _contributorName  :: String
     , _contributorEmail :: Email
     , _contributorORCID :: ORCID
     }
@@ -117,9 +118,40 @@ data Contributor = Contributor
 
 instance FromJSON Contributor where
     parseJSON = withObject "contributors" $ \v -> Contributor
-        <$> v .: "name"
+        <$> v .: "roles"
+        <*> v .: "name"
         <*> v .: "email"
         <*> v .: "orcid"
+
+data Role =
+    RoleAuthor -- ^ Full authors who have made substantial contributions to the package and should show up in the package citation.
+  | RoleCompiler -- ^ Persons who collected code (potentially in other languages) but did not make further substantial contributions to the package.
+  | RoleContributor -- ^ Authors who have made smaller contributions (such as code patches etc.) but should not show up in the package citation.
+  | RoleCopyrightHolder -- ^ Copyright holders.
+  | RoleCreator -- ^ Package maintainer.
+  | RoleThesisAdvisor -- ^ Thesis advisor, if the package is part of a thesis.
+  | RoleTranslator -- ^ Translator from one programming language to the other
+  deriving (Eq)
+
+instance Show Role where
+    show RoleAuthor           = "Author"
+    show RoleCompiler         = "Compiler"
+    show RoleContributor      = "Contributor"
+    show RoleCopyrightHolder  = "Copyright Holder"
+    show RoleCreator          = "Creator"
+    show RoleThesisAdvisor    = "Thesis Advisor"
+    show RoleTranslator       = "Translator"
+
+instance FromJSON Role where
+    parseJSON = withText "role" $ \case
+        "Author"            -> pure RoleAuthor
+        "Compiler"          -> pure RoleCompiler
+        "Contributor"       -> pure RoleContributor
+        "Copyright Holder"  -> pure RoleCopyrightHolder
+        "Creator"           -> pure RoleCreator
+        "Thesis Advisor"    -> pure RoleThesisAdvisor
+        "Translator"        -> pure RoleTranslator
+        other               -> fail $ "unknown role: " ++ show other
 
 newtype Email = Email TEV.EmailAddress
     deriving (Show, Eq)

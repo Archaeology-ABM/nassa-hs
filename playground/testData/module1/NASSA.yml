@@ -3,10 +3,16 @@ moduleType: Algorithm
 title: Green random walk
 moduleVersion: 0.1.0
 contributors:
-  - name: Alfred Testbär
+  - roles:
+    - Author
+    - Copyright Holder
+    name: Alfred Testbär
     email: alfred@cheesecake.com
     orcid: 1234-1234-1234-1234
-  - name: Hanna Testlurch
+  - roles:
+    - Thesis Advisor
+    - Contributor
+    name: Hanna Testlurch
     email: lurch@lake.com
     orcid: 4321-4321-4321-4311
 lastUpdateDate: 2021-11-14
