@@ -3,11 +3,13 @@
 
 module NASSA.Types where
 
+import           Control.Applicative        ((<|>))
 import           Control.Monad              (mzero)
 import           Data.Aeson                 (FromJSON,
                                              parseJSON, withObject,
                                              (.:), (.:?), withText, 
                                              Value (String))
+import           Data.Aeson.Types           (Parser)
 import qualified Data.Text                  as T
 import qualified Data.Text.Encoding         as TS
 import           Data.Time                  (Day)
@@ -36,8 +38,8 @@ data NassaModuleYamlStruct = NassaModuleYamlStruct {
     , _nassaYamlProgrammingKeywords :: [String]
     , _nassaYamlImplementations :: [Implementation]
     , _nassaYamlSoftwareDependencies :: [String]
-    , _nassaYamlInputs :: Maybe [InOrOutput]
-    , _nassaYamlOutputs :: Maybe [InOrOutput]
+    , _nassaYamlInputs :: Maybe [ModuleInput]
+    , _nassaYamlOutputs :: Maybe [ModuleOutput]
     -- , _nassaYamlDocsCheckList :: DocsCheckList
     , _nassaYamlReadmeFile :: Maybe FilePath
     , _nassaYamlDocsDir :: Maybe FilePath
@@ -253,16 +255,42 @@ instance FromJSON ProgrammingLanguage where
         "Processing"   -> pure LanguageProcessing
         other          -> fail $ "unknown Language: " ++ show other
 
-data InOrOutput = InOrOutput
-    { _inOrOutputName :: String
-    , _inOrOutputType :: Maybe String
-    , _inOrOutputUnit :: Maybe String
-    , _inOrOutputDescription :: Maybe String
+data ModuleInput = ModuleInput
+    { _inputName :: String
+    , _inputType :: Maybe String
+    , _inputUnit :: Maybe String
+    , _inputDefault :: Maybe String
+    , _inputDescription :: Maybe String
     }
     deriving (Show, Eq)
 
-instance FromJSON InOrOutput where
-    parseJSON = withObject "inputs or outputs" $ \v -> InOrOutput
+showInt :: Int -> String
+showInt = show
+showDouble :: Double -> String
+showDouble = show
+
+instance FromJSON ModuleInput where
+    parseJSON = withObject "inputs" $ \v -> ModuleInput
+        <$> v .:  "name"
+        <*> v .:? "type"
+        <*> v .:? "unit"
+        -- this is to cover the case that the default value is a number
+        <*> (v .:? "default" <|>
+              fmap showInt <$> v .:? "default" <|>
+              fmap showDouble <$> v .:? "default"
+            )
+        <*> v .:? "description"
+
+data ModuleOutput = ModuleOutput
+    { _outputName :: String
+    , _outputType :: Maybe String
+    , _outputUnit :: Maybe String
+    , _outputDescription :: Maybe String
+    }
+    deriving (Show, Eq)
+
+instance FromJSON ModuleOutput where
+    parseJSON = withObject "outputs" $ \v -> ModuleOutput
         <$> v .:  "name"
         <*> v .:? "type"
         <*> v .:? "unit"

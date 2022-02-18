@@ -55,6 +55,7 @@ softwareDependencies:
 inputs:
   - name: Number of agents (nr_agents)
     type: Integer
+    default: 42
     description: How many agents should be running around?
   - name: World grid tessellation (type_tesselation)
     type: String
