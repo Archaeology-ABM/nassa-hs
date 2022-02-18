@@ -29,10 +29,8 @@ data NassaModuleYamlStruct = NassaModuleYamlStruct {
     , _nassaYamlContributors :: [Contributor]
     , _nassaYamlLastUpdateDate :: Day
     , _nassaYamlDescription :: String
-    , _nassaYamlRelatedModules:: Maybe [ModuleID]
-    , _nassaYamlBibFile :: Maybe FilePath
-    , _nassaYamlModuleReferences :: Maybe [String]
-    , _nassaYamlUseExampleReferences :: Maybe [String]
+    , _nassaYamlRelatedModules :: Maybe [ModuleID]
+    , _nassaYamlReferences :: Maybe ReferenceStruct
     , _nassaYamlDomainKeywords :: Maybe DomainKeyword
     , _nassaYamlModellingKeywords :: [String]
     , _nassaYamlProgrammingKeywords :: [String]
@@ -57,9 +55,7 @@ instance FromJSON NassaModuleYamlStruct where
         <*> v .:  "lastUpdateDate"
         <*> v .:  "description"
         <*> v .:? "relatedModules"
-        <*> v .:? "bibFile"
-        <*> v .:? "moduleReferences"
-        <*> v .:? "useExampleReferences"
+        <*> v .:? "references"
         <*> v .:? "domainKeywords"
         <*> v .:  "modellingKeywords"
         <*> v .:  "programmingKeywords"
@@ -186,6 +182,19 @@ parseORCID = do
   where
       nums = P.count 4 P.digit
       m = P.oneOf "-"
+
+data ReferenceStruct = ReferenceStruct
+    { _referencesBibFile :: FilePath
+    , _referencesModuleReferences :: Maybe [String]
+    , _referencesUseExampleReferences :: Maybe [String]
+    }
+    deriving (Show, Eq)
+
+instance FromJSON ReferenceStruct where
+    parseJSON = withObject "references" $ \v -> ReferenceStruct
+        <$> v .:  "bibFile"
+        <*> v .:? "moduleReferences"
+        <*> v .:? "useExampleReferences"
 
 data DomainKeyword = DomainKeyword
     { _keywordSubjects :: Maybe [String]

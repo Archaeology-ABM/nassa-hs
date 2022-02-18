@@ -60,7 +60,7 @@ readNassaYaml yamlPath = do
 
 checkIntegrity :: NassaModule -> IO NassaModule
 checkIntegrity (NassaModule (baseDir, yamlStruct)) = do
-    checkExistence doesFileExist _nassaYamlBibFile "bibFile"
+    checkExistence doesFileExist (fmap _referencesBibFile . _nassaYamlReferences) "bibFile"
     checkExistence doesFileExist _nassaYamlReadmeFile "readmeFile"
     checkExistence doesDirectoryExist _nassaYamlDocsDir "docsDir"
     checkExistence doesFileExist _nassaYamlDesignDetailsFile "designDetailsFile"

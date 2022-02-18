@@ -23,12 +23,13 @@ description: >
 relatedModules:
   - 2021-Testbär-001
   - 2022-Megatest-002
-bibFile: references.bib
-moduleReferences:
-  - ClarkAntiquity1966
-  - PattersonGenetics2012
-useExampleReferences:
-  - PattersonGenetics2012
+references:
+  bibFile: references.bib
+  moduleReferences:
+    - ClarkAntiquity1966
+    - PattersonGenetics2012
+  useExampleReferences:
+    - PattersonGenetics2012
 domainKeywords:
   regions:
     - Near East
