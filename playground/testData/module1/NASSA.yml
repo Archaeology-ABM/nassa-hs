@@ -23,9 +23,12 @@ description: >
 relatedModules:
   - 2021-Testbär-001
   - 2022-Megatest-002
-relatedReferences:
-  - Clark, G. The invasion hypothesis in British archaeology. Antiquity 40, 172–189 (1966)
-  - Patterson, N. et al. Ancient admixture in human history. Genetics 192, 1065–1093 (2012)
+bibFile: references.bib
+moduleReferences:
+  - ClarkAntiquity1966
+  - PattersonGenetics2012
+useExampleReferences:
+  - PattersonGenetics2012
 domainKeywords:
   regions:
     - Near East
