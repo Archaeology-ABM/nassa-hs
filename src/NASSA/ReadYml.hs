@@ -1,6 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 module NASSA.ReadYml where
 
+import           NASSA.BibTeX
 import           NASSA.Types
 import           NASSA.Utils
 
@@ -8,7 +9,8 @@ import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, unless, forM_)
 import qualified Data.ByteString            as B
 import           Data.Either                (lefts, rights)
-import           Data.List                  (intercalate)
+import           Data.List                  (intercalate, nub, (\\))
+import           Data.Maybe                 (maybeToList)
 import           Data.Yaml                  (decodeEither')
 import           System.Directory           (doesDirectoryExist, doesFileExist, 
                                              listDirectory)
@@ -60,11 +62,15 @@ readNassaYaml yamlPath = do
 
 checkIntegrity :: NassaModule -> IO NassaModule
 checkIntegrity (NassaModule (baseDir, yamlStruct)) = do
-    checkExistence doesFileExist (fmap _referencesBibFile . _nassaYamlReferences) "bibFile"
+    -- file existence checks
     checkExistence doesFileExist _nassaYamlReadmeFile "readmeFile"
     checkExistence doesDirectoryExist _nassaYamlDocsDir "docsDir"
     checkExistence doesFileExist _nassaYamlDesignDetailsFile "designDetailsFile"
     checkCodeDirsExistence
+    checkExistence doesFileExist (fmap _referencesBibFile . _nassaYamlReferences) "bibFile"
+    -- reference/bibtex integrity
+    checkReferences (_nassaYamlReferences yamlStruct)
+    -- return package
     return (NassaModule (baseDir, yamlStruct))
     where
         nassaID = _nassaYamlID yamlStruct
@@ -84,3 +90,16 @@ checkIntegrity (NassaModule (baseDir, yamlStruct)) = do
             unless (and codeDirsExist) $ throwIO $
                 NassaModuleIntegrityException nassaID $
                 "One of the codeDirs (" ++ intercalate ", " codeDirs ++ ") does not exist"
+        checkReferences :: Maybe ReferenceStruct -> IO ()
+        checkReferences Nothing = return ()
+        checkReferences (Just (ReferenceStruct bibFilePath xs ys)) = do
+            -- read bibtex file
+            bib <- readBibTeXFile $ baseDir </> bibFilePath
+            -- match keys
+            let literatureInYml = nub $ concat $ maybeToList $ (++) <$> xs <*> ys
+            let literatureInBib = map bibEntryId bib
+            let literatureNotInBibButInYml = literatureInYml \\ literatureInBib
+            unless (null literatureNotInBibButInYml) $ 
+                throwIO $ NassaModuleIntegrityException nassaID $
+                    "Some papers referenced in the NASSA.yml file (" ++
+                    intercalate ", " literatureNotInBibButInYml ++ ") lack BibTeX entries"
