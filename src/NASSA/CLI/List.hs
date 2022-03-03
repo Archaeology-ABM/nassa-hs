@@ -6,7 +6,7 @@ import           NASSA.Types
 import           Data.List                  (transpose, intercalate)
 import           Text.Layout.Table          (asciiRoundS, column, def,
                                              expandUntil, rowsG, tableString,
-                                             titlesH)
+                                             titlesH, singleCutMark)
 
 data ListOptions = ListOptions { 
       _inPath :: FilePath
@@ -31,5 +31,6 @@ printModuleTable rawOutput modules = do
     if rawOutput
     then putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
     else do
-        let colSpecs = replicate (length tableH) (column (expandUntil 60) def def def)
+        let columnSetting = column (expandUntil 40) def def (singleCutMark "...")
+            colSpecs = replicate (length tableH) columnSetting
         putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]
