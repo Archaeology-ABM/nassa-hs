@@ -14,7 +14,7 @@ extra-source-files:  README.md,
 
 library
     exposed-modules:    NASSA.Types, NASSA.Utils, NASSA.ReadYml
-                        NASSA.CLI.List, NASSA.BibTeX
+                        NASSA.CLI.List, NASSA.CLI.Validate, NASSA.BibTeX
     hs-source-dirs:     src
     build-depends:      base, filepath, filepath, aeson, bytestring, yaml,
                         directory, table-layout, time, parsec, email-validate,
