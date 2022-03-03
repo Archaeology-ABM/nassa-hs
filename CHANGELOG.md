@@ -1,3 +1,4 @@
+- V 0.4.2: Implemented more correct ORCID parsing
 - V 0.4.1: Solved an issue with column truncation in the list subcommand
 - V 0.4.0: A whole number of breaking changes to the main yml file data structure, and more sophisticated read-time validation (including for .bib files)
 - V 0.3.0: Added more programming languages: Java, Julia, C#, Ruby, Processing
