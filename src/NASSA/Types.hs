@@ -164,7 +164,10 @@ instance FromJSON Email where
         Just x  -> pure $ Email x
     parseJSON _ = mzero
 
-newtype ORCID = ORCID String
+data ORCID = ORCID
+    { _orcidNums :: [Char]
+    , _orcidChecksum :: Char
+    }
     deriving (Show, Eq)
 
 instance FromJSON ORCID where
@@ -175,14 +178,16 @@ instance FromJSON ORCID where
 
 parseORCID :: P.Parser ORCID
 parseORCID = do
-  s <- (\a b c d -> [a,b,c,d]) <$> nums <* m 
-                               <*> nums <* m 
-                               <*> nums <* m 
-                               <*> nums <* P.eof
-  return $ ORCID $ concat s
+  (\a b c d e -> ORCID (concat [a,b,c,d]) e) <$>
+        fourBlock <* m
+    <*> fourBlock <* m
+    <*> fourBlock <* m
+    <*> threeBlock <*> checksumDigit <* P.eof
   where
-      nums = P.count 4 P.digit
+      fourBlock = P.count 4 P.digit
       m = P.oneOf "-"
+      threeBlock = P.count 3 P.digit
+      checksumDigit = P.digit P.<|> P.char 'X'
 
 data ReferenceStruct = ReferenceStruct
     { _referencesBibFile :: FilePath

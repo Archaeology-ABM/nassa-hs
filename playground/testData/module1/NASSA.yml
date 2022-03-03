@@ -1,6 +1,6 @@
 id: 2021-Testbär-001
 moduleType: Algorithm
-title: Green random walk Green random walk Green random walk Green random walk Green random walk
+title: Green random walk
 moduleVersion: 0.1.0
 contributors:
   - roles:
@@ -14,7 +14,7 @@ contributors:
     - Contributor
     name: Hanna Testlurch
     email: lurch@lake.com
-    orcid: 4321-4321-4321-4311
+    orcid: 4321-4321-4321-431X
 lastUpdateDate: 2021-11-14
 description: >
   This is a very green implementation of a random walk.
