@@ -19,8 +19,8 @@ runValidate (ValidateOptions baseDir noExitCode) = do
         numberOfLoadedModules = length yamlCollection
     if numberOfNASSAymlFiles == numberOfLoadedModules
     then do
-        hPutStrLn stdout "Validation passed ✓"
+        hPutStrLn stdout "Validation passed: OK"
         unless noExitCode exitSuccess
     else do
-        hPutStrLn stdout "Validation failed ✗"
+        hPutStrLn stdout "Validation failed: ERROR"
         unless noExitCode exitFailure
