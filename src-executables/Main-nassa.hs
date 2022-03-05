@@ -1,9 +1,11 @@
 import           NASSA.CLI.List
 import           NASSA.CLI.Validate
+import           NASSA.Types
 import           NASSA.Utils
 import           Paths_nassa                 (version)
 
 import           Control.Exception          (catch)
+import           Data.List                  (intercalate)
 import           Data.Version               (showVersion)
 import qualified Options.Applicative        as OP
 import           System.Exit                (exitFailure)
@@ -18,6 +20,8 @@ data Options =
 
 main :: IO ()
 main = do
+    hPutStrLn stderr renderVersion
+    hPutStrLn stderr ""
     cmdOpts <- OP.customExecParser p optParserInfo
     catch (runCmd cmdOpts) handler
     where
@@ -40,6 +44,12 @@ optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
 
 versionOption :: OP.Parser (a -> a)
 versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.help "Show version")
+
+renderVersion :: String
+renderVersion = 
+    "nassa v" ++ showVersion version ++ " for the NASSA standard v" ++ 
+    intercalate ", v" (map showNassaVersion validNassaVersions)-- ++ "\n" ++
+    --"https://..."
 
 optParser :: OP.Parser Options
 optParser = OP.subparser (

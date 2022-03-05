@@ -1,3 +1,4 @@
+- V 0.6.0: Added all the necessary mechanisms to make nassa aware of the NASSA standard versions of modules
 - V 0.5.0: Added a cli subcommand validate
 - V 0.4.2: Implemented more correct ORCID parsing
 - V 0.4.1: Solved an issue with column truncation in the list subcommand

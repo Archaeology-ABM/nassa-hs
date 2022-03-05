@@ -12,18 +12,17 @@ import           Data.Aeson                 (FromJSON,
 import qualified Data.Text                  as T
 import qualified Data.Text.Encoding         as TS
 import           Data.Time                  (Day)
-import           Data.Version               (Version)
+import           Data.Version               (Version, makeVersion, showVersion)
 import qualified Text.Parsec                as P
 import qualified Text.Parsec.Text           as P
 import qualified Text.Email.Validate        as TEV
-
-
 
 newtype NassaModule = NassaModule (FilePath, NassaModuleYamlStruct)
     deriving (Show, Eq)
 
 data NassaModuleYamlStruct = NassaModuleYamlStruct {
       _nassaYamlID :: ModuleID
+    , _nassaNASSAVersion :: NassaVersion
     , _nassaYamlModuleType :: ModuleType
     , _nassaYamlTitle :: ModuleTitle
     , _nassaYamlModuleVersion :: Version
@@ -49,6 +48,7 @@ data NassaModuleYamlStruct = NassaModuleYamlStruct {
 instance FromJSON NassaModuleYamlStruct where
     parseJSON = withObject "NassaModuleYamlStruct" $ \v -> NassaModuleYamlStruct
         <$> v .:  "id"
+        <*> v .:  "nassaVersion"
         <*> v .:  "moduleType"
         <*> v .:  "title"
         <*> v .:  "moduleVersion"
@@ -80,6 +80,17 @@ instance Show ModuleID where
 instance FromJSON ModuleID where
     parseJSON (String s) = pure $ ModuleID $ T.unpack s
     parseJSON _ = mzero
+
+type NassaVersion = Version
+
+validNassaVersions :: [NassaVersion]
+validNassaVersions = map makeVersion [[0,1,0]]
+
+latestNassaVersion :: NassaVersion
+latestNassaVersion = last validNassaVersions
+
+showNassaVersion :: NassaVersion -> String
+showNassaVersion = showVersion
 
 newtype ModuleTitle = ModuleTitle String
     deriving (Eq)

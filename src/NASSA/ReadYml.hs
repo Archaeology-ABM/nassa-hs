@@ -8,14 +8,16 @@ import           NASSA.Utils
 import           Control.Exception          (throwIO, try)
 import           Control.Monad              (filterM, unless, forM_)
 import qualified Data.ByteString            as B
+import           Data.Char                  (isSpace)
 import           Data.Either                (lefts, rights)
-import           Data.List                  (intercalate, nub, (\\))
+import           Data.List                  (intercalate, nub, (\\), elemIndex)
 import           Data.Maybe                 (maybeToList)
 import           Data.Yaml                  (decodeEither')
 import           System.Directory           (doesDirectoryExist, doesFileExist, 
                                              listDirectory)
 import           System.FilePath            ((</>), takeFileName, takeDirectory)
-import           System.IO                  (hPutStrLn, stderr)
+import           System.IO                  (IOMode (ReadMode), hGetContents,
+                                            hPutStrLn, stderr, withFile)
 
 readNassaModuleCollection :: FilePath -> IO [NassaModule]
 readNassaModuleCollection baseDir = do
@@ -23,9 +25,12 @@ readNassaModuleCollection baseDir = do
     hPutStrLn stderr "Searching NASSA.yml files... "
     yamlFilePaths <- findAllNassaYamlFiles baseDir
     hPutStrLn stderr $ show (length yamlFilePaths) ++ " found"
+    -- remove yml files with wrong nassaVersion
+    hPutStrLn stderr "Checking NASSA versions... "
+    yamlFilePathsInVersionRange <- filterByNassaVersion yamlFilePaths
     -- parse yml files
     hPutStrLn stderr "Loading NASSA.yml files... "
-    eitherYamls <- mapM (try . readNassaYaml) yamlFilePaths :: IO [Either NassaException NassaModule]
+    eitherYamls <- mapM (try . readNassaYaml) yamlFilePathsInVersionRange :: IO [Either NassaException NassaModule]
     unless (null . lefts $ eitherYamls) $ do
         hPutStrLn stderr "Some files were skipped:"
         forM_ eitherYamls $ \case
@@ -52,6 +57,33 @@ findAllNassaYamlFiles baseDir = do
     subDirs <- filterM doesDirectoryExist . map (baseDir </>) $ entries
     moreFiles <- fmap concat . mapM findAllNassaYamlFiles $ subDirs
     return $ curFiles ++ moreFiles
+
+filterByNassaVersion :: [FilePath] -> IO [FilePath]
+filterByNassaVersion nassaYmlFiles = do
+    eitherPaths <- mapM isInVersionRange nassaYmlFiles
+    mapM_ (hPutStrLn stderr . renderNassaException) $ lefts eitherPaths
+    return $ rights eitherPaths
+    where
+        isInVersionRange :: FilePath -> IO (Either NassaException FilePath)
+        isInVersionRange ymlFile = do
+            content <- readFile' ymlFile
+            let ymlLines = lines content
+            -- This implementation only works with a true YAML file.
+            -- But technically also JSON is YAML. If somebody prepares
+            -- a NASSA.yml file in JSON format, a wrong version
+            -- can not be caught.
+            case elemIndex "nassaVersion:" (map (take 13) ymlLines) of
+                Nothing -> return $ Left $ NassaModuleMissingVersionException ymlFile
+                Just n -> do
+                    let versionLine = ymlLines !! n
+                        versionString = filter (not . isSpace) $ drop 13 versionLine
+                    if versionString `elem` map showNassaVersion validNassaVersions
+                    then return $ Right ymlFile
+                    else return $ Left $ NassaModuleVersionException ymlFile versionString
+        readFile' :: FilePath -> IO String
+        readFile' filename = withFile filename ReadMode $ \handle -> do
+            theContent <- hGetContents handle
+            mapM return theContent
 
 readNassaYaml :: FilePath -> IO NassaModule
 readNassaYaml yamlPath = do
