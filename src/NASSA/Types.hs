@@ -41,7 +41,6 @@ data NassaModuleYamlStruct = NassaModuleYamlStruct {
     -- , _nassaYamlDocsCheckList :: DocsCheckList
     , _nassaYamlReadmeFile :: Maybe FilePath
     , _nassaYamlDocsDir :: Maybe FilePath
-    , _nassaYamlDesignDetailsFile :: Maybe FilePath
     , _nassaYamlLicense :: Maybe String
     } deriving (Show, Eq)
 
@@ -67,7 +66,6 @@ instance FromJSON NassaModuleYamlStruct where
         -- <*> v .:  "docsCheckList"
         <*> v .:? "readmeFile"
         <*> v .:? "docsDir"
-        <*> v .:? "designDetailsFile"
         <*> v .:? "license"
 
 

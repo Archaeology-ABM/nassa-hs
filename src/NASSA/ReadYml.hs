@@ -97,7 +97,6 @@ checkIntegrity (NassaModule (baseDir, yamlStruct)) = do
     -- file existence checks
     checkExistence doesFileExist _nassaYamlReadmeFile "readmeFile"
     checkExistence doesDirectoryExist _nassaYamlDocsDir "docsDir"
-    checkExistence doesFileExist _nassaYamlDesignDetailsFile "designDetailsFile"
     checkCodeDirsExistence
     checkExistence doesFileExist (fmap _referencesBibFile . _nassaYamlReferences) "bibFile"
     -- reference/bibtex integrity
