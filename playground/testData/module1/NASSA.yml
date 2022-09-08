@@ -1,21 +1,36 @@
 id: 2021-Testbär-001
+nassaVersion: 0.1.0
+moduleType: Algorithm
 title: Green random walk
 moduleVersion: 0.1.0
 contributors:
-  - name: Alfred Testbär
+  - roles:
+    - Author
+    - Copyright Holder
+    name: Alfred Testbär
     email: alfred@cheesecake.com
     orcid: 1234-1234-1234-1234
-  - name: Hanna Testlurch
+  - roles:
+    - Thesis Advisor
+    - Contributor
+    name: Hanna Testlurch
     email: lurch@lake.com
-    orcid: 4321-4321-4321-4311
+    orcid: 4321-4321-4321-431X
 lastUpdateDate: 2021-11-14
 description: >
   This is a very green implementation of a random walk.
   Very green!
   Believe me!
-relatedReferences:
-  - Clark, G. The invasion hypothesis in British archaeology. Antiquity 40, 172–189 (1966)
-  - Patterson, N. et al. Ancient admixture in human history. Genetics 192, 1065–1093 (2012)
+relatedModules:
+  - 2021-Testbär-001
+  - 2022-Megatest-002
+references:
+  bibFile: references.bib
+  moduleReferences:
+    - ClarkAntiquity1966
+    - PattersonGenetics2012
+  useExampleReferences:
+    - PattersonGenetics2012
 domainKeywords:
   regions:
     - Near East
@@ -30,13 +45,18 @@ modellingKeywords:
 programmingKeywords:
   - Object-oriented programming
   - Nondeterministic algorithm
-programmingLanguages: NetLogo
+implementations:
+  - language: NetLogo
+    codeDir: netlogo_implementation
+  - language: Python
+    codeDir: python_implementation
 softwareDependencies:
   - R >= v.3.6.0
   - libgdal >= 3.2.0
 inputs:
   - name: Number of agents (nr_agents)
     type: Integer
+    default: 42
     description: How many agents should be running around?
   - name: World grid tessellation (type_tesselation)
     type: String

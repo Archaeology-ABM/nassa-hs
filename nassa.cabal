@@ -1,5 +1,5 @@
 name:                nassa
-version:             0.3.0
+version:             0.6.0
 synopsis:            A package to validate NASSA modules
 description:         NASSA maintains a library of agent-based-modelling algorithms in individual code modules. Each module is defined by a NASSA.yml file. nassa-hs validates these .yml files.
 license:             MIT
@@ -14,9 +14,9 @@ extra-source-files:  README.md,
 
 library
     exposed-modules:    NASSA.Types, NASSA.Utils, NASSA.ReadYml
-                        NASSA.CLI.List
+                        NASSA.CLI.List, NASSA.CLI.Validate, NASSA.BibTeX
     hs-source-dirs:     src
-    build-depends:      base, filepath, filepath, aeson, bytestring, yaml,
+    build-depends:      base, filepath, aeson, bytestring, yaml,
                         directory, table-layout, time, parsec, email-validate,
                         text
     default-language:   Haskell2010

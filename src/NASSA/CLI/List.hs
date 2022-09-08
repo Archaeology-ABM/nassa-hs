@@ -6,7 +6,7 @@ import           NASSA.Types
 import           Data.List                  (transpose, intercalate)
 import           Text.Layout.Table          (asciiRoundS, column, def,
                                              expandUntil, rowsG, tableString,
-                                             titlesH)
+                                             titlesH, singleCutMark)
 
 data ListOptions = ListOptions { 
       _inPath :: FilePath
@@ -21,15 +21,16 @@ runList (ListOptions baseDir rawOutput) = do
 printModuleTable :: Bool -> [NassaModule] -> IO ()
 printModuleTable rawOutput modules = do
     let yamlStruct = map (\(NassaModule (_,x)) -> x) modules
-    let tableH = ["id", "title", "first author", "language"]
+    let tableH = ["id", "title", "first author", "implementations"]
         tableB = transpose [
-              map _nassaYamlID yamlStruct
+              map (show . _nassaYamlID) yamlStruct
             , map (show . _nassaYamlTitle) yamlStruct
             , map (_contributorName . head . _nassaYamlContributors) yamlStruct
-            , map (show . _nassaYamlProgrammingLanguage) yamlStruct
+            , map (intercalate ";" . map (show . _implementationLanguage) . _nassaYamlImplementations) yamlStruct
             ]
     if rawOutput
     then putStrLn $ intercalate "\n" [intercalate "\t" row | row <- tableB]
     else do
-        let colSpecs = replicate (length tableH) (column (expandUntil 60) def def def)
+        let columnSetting = column (expandUntil 40) def def (singleCutMark "...")
+            colSpecs = replicate (length tableH) columnSetting
         putStrLn $ tableString colSpecs asciiRoundS (titlesH tableH) [rowsG tableB]

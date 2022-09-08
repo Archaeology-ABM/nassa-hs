@@ -3,6 +3,7 @@
 
 module NASSA.Types where
 
+import           Control.Applicative        ((<|>))
 import           Control.Monad              (mzero)
 import           Data.Aeson                 (FromJSON,
                                              parseJSON, withObject,
@@ -11,31 +12,32 @@ import           Data.Aeson                 (FromJSON,
 import qualified Data.Text                  as T
 import qualified Data.Text.Encoding         as TS
 import           Data.Time                  (Day)
-import           Data.Version               (Version)
+import           Data.Version               (Version, makeVersion, showVersion)
 import qualified Text.Parsec                as P
 import qualified Text.Parsec.Text           as P
 import qualified Text.Email.Validate        as TEV
 
-
-
-newtype NassaModule = NassaModule (FilePath, NassaYamlStruct)
+newtype NassaModule = NassaModule (FilePath, NassaModuleYamlStruct)
     deriving (Show, Eq)
 
-data NassaYamlStruct = NassaYamlStruct {
-      _nassaYamlID :: String
+data NassaModuleYamlStruct = NassaModuleYamlStruct {
+      _nassaYamlID :: ModuleID
+    , _nassaNASSAVersion :: NassaVersion
+    , _nassaYamlModuleType :: ModuleType
     , _nassaYamlTitle :: ModuleTitle
     , _nassaYamlModuleVersion :: Version
     , _nassaYamlContributors :: [Contributor]
     , _nassaYamlLastUpdateDate :: Day
     , _nassaYamlDescription :: String
-    , _nassaYamlRelatedReferences :: Maybe [String]
+    , _nassaYamlRelatedModules :: Maybe [ModuleID]
+    , _nassaYamlReferences :: Maybe ReferenceStruct
     , _nassaYamlDomainKeywords :: Maybe DomainKeyword
     , _nassaYamlModellingKeywords :: [String]
     , _nassaYamlProgrammingKeywords :: [String]
-    , _nassaYamlProgrammingLanguage :: ProgrammingLanguage
+    , _nassaYamlImplementations :: [Implementation]
     , _nassaYamlSoftwareDependencies :: [String]
-    , _nassaYamlInputs :: Maybe [InOrOutput]
-    , _nassaYamlOutputs :: Maybe [InOrOutput]
+    , _nassaYamlInputs :: Maybe [ModuleInput]
+    , _nassaYamlOutputs :: Maybe [ModuleOutput]
     -- , _nassaYamlDocsCheckList :: DocsCheckList
     , _nassaYamlReadmeFile :: Maybe FilePath
     , _nassaYamlDocsDir :: Maybe FilePath
@@ -43,19 +45,22 @@ data NassaYamlStruct = NassaYamlStruct {
     , _nassaYamlLicense :: Maybe String
     } deriving (Show, Eq)
 
-instance FromJSON NassaYamlStruct where
-    parseJSON = withObject "NassaYamlStruct" $ \v -> NassaYamlStruct
+instance FromJSON NassaModuleYamlStruct where
+    parseJSON = withObject "NassaModuleYamlStruct" $ \v -> NassaModuleYamlStruct
         <$> v .:  "id"
+        <*> v .:  "nassaVersion"
+        <*> v .:  "moduleType"
         <*> v .:  "title"
         <*> v .:  "moduleVersion"
         <*> v .:  "contributors"
         <*> v .:  "lastUpdateDate"
         <*> v .:  "description"
-        <*> v .:? "relatedReferences"
+        <*> v .:? "relatedModules"
+        <*> v .:? "references"
         <*> v .:? "domainKeywords"
         <*> v .:  "modellingKeywords"
         <*> v .:  "programmingKeywords"
-        <*> v .:  "programmingLanguages"
+        <*> v .:  "implementations"
         <*> v .:  "softwareDependencies"
         <*> v .:? "inputs"
         <*> v .:? "outputs"
@@ -64,6 +69,28 @@ instance FromJSON NassaYamlStruct where
         <*> v .:? "docsDir"
         <*> v .:? "designDetailsFile"
         <*> v .:? "license"
+
+
+newtype ModuleID = ModuleID String
+    deriving (Eq)
+
+instance Show ModuleID where
+    show (ModuleID s) = s
+
+instance FromJSON ModuleID where
+    parseJSON (String s) = pure $ ModuleID $ T.unpack s
+    parseJSON _ = mzero
+
+type NassaVersion = Version
+
+validNassaVersions :: [NassaVersion]
+validNassaVersions = map makeVersion [[0,1,0]]
+
+latestNassaVersion :: NassaVersion
+latestNassaVersion = last validNassaVersions
+
+showNassaVersion :: NassaVersion -> String
+showNassaVersion = showVersion
 
 newtype ModuleTitle = ModuleTitle String
     deriving (Eq)
@@ -78,8 +105,24 @@ instance FromJSON ModuleTitle where
         else fail "module title must not be longer than 100 characters"
     parseJSON _ = mzero
 
+data ModuleType =
+      Algorithm
+    | Submodel
+    deriving (Eq)
+
+instance Show ModuleType where
+    show Algorithm = "Algorithm"
+    show Submodel = "Submodel"
+
+instance FromJSON ModuleType where
+    parseJSON = withText "programmingLanguage" $ \case
+        "Algorithm"    -> pure Algorithm
+        "Submodel"     -> pure Submodel
+        other          -> fail $ "unknown module type: " ++ show other
+
 data Contributor = Contributor
-    { _contributorName  :: String
+    { _contributorRole  :: [Role]
+    , _contributorName  :: String
     , _contributorEmail :: Email
     , _contributorORCID :: ORCID
     }
@@ -87,9 +130,40 @@ data Contributor = Contributor
 
 instance FromJSON Contributor where
     parseJSON = withObject "contributors" $ \v -> Contributor
-        <$> v .: "name"
+        <$> v .: "roles"
+        <*> v .: "name"
         <*> v .: "email"
         <*> v .: "orcid"
+
+data Role =
+    RoleAuthor -- ^ Full authors who have made substantial contributions to the package and should show up in the package citation.
+  | RoleCompiler -- ^ Persons who collected code (potentially in other languages) but did not make further substantial contributions to the package.
+  | RoleContributor -- ^ Authors who have made smaller contributions (such as code patches etc.) but should not show up in the package citation.
+  | RoleCopyrightHolder -- ^ Copyright holders.
+  | RoleCreator -- ^ Package maintainer.
+  | RoleThesisAdvisor -- ^ Thesis advisor, if the package is part of a thesis.
+  | RoleTranslator -- ^ Translator from one programming language to the other
+  deriving (Eq)
+
+instance Show Role where
+    show RoleAuthor           = "Author"
+    show RoleCompiler         = "Compiler"
+    show RoleContributor      = "Contributor"
+    show RoleCopyrightHolder  = "Copyright Holder"
+    show RoleCreator          = "Creator"
+    show RoleThesisAdvisor    = "Thesis Advisor"
+    show RoleTranslator       = "Translator"
+
+instance FromJSON Role where
+    parseJSON = withText "role" $ \case
+        "Author"            -> pure RoleAuthor
+        "Compiler"          -> pure RoleCompiler
+        "Contributor"       -> pure RoleContributor
+        "Copyright Holder"  -> pure RoleCopyrightHolder
+        "Creator"           -> pure RoleCreator
+        "Thesis Advisor"    -> pure RoleThesisAdvisor
+        "Translator"        -> pure RoleTranslator
+        other               -> fail $ "unknown role: " ++ show other
 
 newtype Email = Email TEV.EmailAddress
     deriving (Show, Eq)
@@ -101,7 +175,10 @@ instance FromJSON Email where
         Just x  -> pure $ Email x
     parseJSON _ = mzero
 
-newtype ORCID = ORCID String
+data ORCID = ORCID
+    { _orcidNums :: [Char]
+    , _orcidChecksum :: Char
+    }
     deriving (Show, Eq)
 
 instance FromJSON ORCID where
@@ -112,14 +189,29 @@ instance FromJSON ORCID where
 
 parseORCID :: P.Parser ORCID
 parseORCID = do
-  s <- (\a b c d -> [a,b,c,d]) <$> nums <* m 
-                               <*> nums <* m 
-                               <*> nums <* m 
-                               <*> nums <* P.eof
-  return $ ORCID $ concat s
+  (\a b c d e -> ORCID (concat [a,b,c,d]) e) <$>
+        fourBlock <* m
+    <*> fourBlock <* m
+    <*> fourBlock <* m
+    <*> threeBlock <*> checksumDigit <* P.eof
   where
-      nums = P.count 4 P.digit
+      fourBlock = P.count 4 P.digit
       m = P.oneOf "-"
+      threeBlock = P.count 3 P.digit
+      checksumDigit = P.digit P.<|> P.char 'X'
+
+data ReferenceStruct = ReferenceStruct
+    { _referencesBibFile :: FilePath
+    , _referencesModuleReferences :: Maybe [String]
+    , _referencesUseExampleReferences :: Maybe [String]
+    }
+    deriving (Show, Eq)
+
+instance FromJSON ReferenceStruct where
+    parseJSON = withObject "references" $ \v -> ReferenceStruct
+        <$> v .:  "bibFile"
+        <*> v .:? "moduleReferences"
+        <*> v .:? "useExampleReferences"
 
 data DomainKeyword = DomainKeyword
     { _keywordSubjects :: Maybe [String]
@@ -133,6 +225,17 @@ instance FromJSON DomainKeyword where
         <$> v .:? "subjects"
         <*> v .:? "regions"
         <*> v .:? "periods"
+
+data Implementation = Implementation
+    { _implementationLanguage :: ProgrammingLanguage
+    , _implementationCodeDir :: FilePath
+    }
+    deriving (Show, Eq)
+
+instance FromJSON Implementation where
+    parseJSON = withObject "implementations" $ \v -> Implementation
+        <$> v .: "language"
+        <*> v .: "codeDir"
 
 data ProgrammingLanguage = 
       LanguageR 
@@ -167,16 +270,42 @@ instance FromJSON ProgrammingLanguage where
         "Processing"   -> pure LanguageProcessing
         other          -> fail $ "unknown Language: " ++ show other
 
-data InOrOutput = InOrOutput
-    { _inOrOutputName :: String
-    , _inOrOutputType :: Maybe String
-    , _inOrOutputUnit :: Maybe String
-    , _inOrOutputDescription :: Maybe String
+data ModuleInput = ModuleInput
+    { _inputName :: String
+    , _inputType :: Maybe String
+    , _inputUnit :: Maybe String
+    , _inputDefault :: Maybe String
+    , _inputDescription :: Maybe String
     }
     deriving (Show, Eq)
 
-instance FromJSON InOrOutput where
-    parseJSON = withObject "inputs or outputs" $ \v -> InOrOutput
+showInt :: Int -> String
+showInt = show
+showDouble :: Double -> String
+showDouble = show
+
+instance FromJSON ModuleInput where
+    parseJSON = withObject "inputs" $ \v -> ModuleInput
+        <$> v .:  "name"
+        <*> v .:? "type"
+        <*> v .:? "unit"
+        -- this is to cover the case that the default value is a number
+        <*> (v .:? "default" <|>
+              fmap showInt <$> v .:? "default" <|>
+              fmap showDouble <$> v .:? "default"
+            )
+        <*> v .:? "description"
+
+data ModuleOutput = ModuleOutput
+    { _outputName :: String
+    , _outputType :: Maybe String
+    , _outputUnit :: Maybe String
+    , _outputDescription :: Maybe String
+    }
+    deriving (Show, Eq)
+
+instance FromJSON ModuleOutput where
+    parseJSON = withObject "outputs" $ \v -> ModuleOutput
         <$> v .:  "name"
         <*> v .:? "type"
         <*> v .:? "unit"
