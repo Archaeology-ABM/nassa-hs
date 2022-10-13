@@ -1,3 +1,4 @@
+- V 0.7.0: Adapted checks on softwareDependencies to nassa-schema v0.3.0
 - V 0.6.1: Discarded checks on designDetailsFile field
 - V 0.6.0: Added all the necessary mechanisms to make nassa aware of the NASSA standard versions of modules
 - V 0.5.0: Added a cli subcommand validate

@@ -35,7 +35,6 @@ data NassaModuleYamlStruct = NassaModuleYamlStruct {
     , _nassaYamlModellingKeywords :: [String]
     , _nassaYamlProgrammingKeywords :: [String]
     , _nassaYamlImplementations :: [Implementation]
-    , _nassaYamlSoftwareDependencies :: [String]
     , _nassaYamlInputs :: Maybe [ModuleInput]
     , _nassaYamlOutputs :: Maybe [ModuleOutput]
     -- , _nassaYamlDocsCheckList :: DocsCheckList
@@ -60,7 +59,6 @@ instance FromJSON NassaModuleYamlStruct where
         <*> v .:  "modellingKeywords"
         <*> v .:  "programmingKeywords"
         <*> v .:  "implementations"
-        <*> v .:  "softwareDependencies"
         <*> v .:? "inputs"
         <*> v .:? "outputs"
         -- <*> v .:  "docsCheckList"
@@ -82,7 +80,7 @@ instance FromJSON ModuleID where
 type NassaVersion = Version
 
 validNassaVersions :: [NassaVersion]
-validNassaVersions = map makeVersion [[0,1,0]]
+validNassaVersions = map makeVersion [[0,3,0]]
 
 latestNassaVersion :: NassaVersion
 latestNassaVersion = last validNassaVersions
@@ -227,6 +225,7 @@ instance FromJSON DomainKeyword where
 data Implementation = Implementation
     { _implementationLanguage :: ProgrammingLanguage
     , _implementationCodeDir :: FilePath
+    , _nassaYamlSoftwareDependencies :: [String]
     }
     deriving (Show, Eq)
 
@@ -234,6 +233,7 @@ instance FromJSON Implementation where
     parseJSON = withObject "implementations" $ \v -> Implementation
         <$> v .: "language"
         <*> v .: "codeDir"
+        <*> v .:  "softwareDependencies"
 
 data ProgrammingLanguage = 
       LanguageR 
