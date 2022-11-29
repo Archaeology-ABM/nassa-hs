@@ -4,11 +4,11 @@
 module NASSA.Types where
 
 import           Control.Applicative        ((<|>))
-import           Control.Monad              (mzero)
+import           Control.Monad              (mzero, guard)
 import           Data.Aeson                 (FromJSON,
                                              parseJSON, withObject,
-                                             (.:), (.:?), withText, 
-                                             Value (String))
+                                             (.:), (.:?), withText,
+                                             Value (String), ToJSON (..))
 import qualified Data.Text                  as T
 import qualified Data.Text.Encoding         as TS
 import           Data.Time                  (Day)
@@ -16,6 +16,8 @@ import           Data.Version               (Version, makeVersion, showVersion)
 import qualified Text.Parsec                as P
 import qualified Text.Parsec.Text           as P
 import qualified Text.Email.Validate        as TEV
+import Data.Char (digitToInt)
+import Data.List (intercalate)
 
 newtype NassaModule = NassaModule (FilePath, NassaModuleYamlStruct)
     deriving (Show, Eq)
@@ -171,8 +173,10 @@ instance FromJSON Email where
         Just x  -> pure $ Email x
     parseJSON _ = mzero
 
+-- | A data type to represent an ORCID
+-- see https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier
 data ORCID = ORCID
-    { _orcidNums :: [Char]
+    { _orcidNums     :: [Char]
     , _orcidChecksum :: Char
     }
     deriving (Show, Eq)
@@ -183,18 +187,46 @@ instance FromJSON ORCID where
         Right x  -> pure x
     parseJSON _          = mzero
 
+instance ToJSON ORCID where
+    toJSON x = String $ T.pack $ renderORCID x
+
 parseORCID :: P.Parser ORCID
 parseORCID = do
-  (\a b c d e -> ORCID (concat [a,b,c,d]) e) <$>
-        fourBlock <* m
-    <*> fourBlock <* m
-    <*> fourBlock <* m
-    <*> threeBlock <*> checksumDigit <* P.eof
+    orcid <- (\a b c d e -> ORCID (concat [a,b,c,d]) e) <$>
+            fourBlock <* m
+        <*> fourBlock <* m
+        <*> fourBlock <* m
+        <*> threeBlock <*> checksumDigit <* P.eof
+    guard (validateORCID orcid) P.<?> "ORCID is not valid"
+    return orcid
   where
       fourBlock = P.count 4 P.digit
       m = P.oneOf "-"
       threeBlock = P.count 3 P.digit
       checksumDigit = P.digit P.<|> P.char 'X'
+
+validateORCID :: ORCID -> Bool
+validateORCID (ORCID nums check) =
+    let numsInt = map digitToInt nums
+        total = makeTotal 0 numsInt
+        remainder = total `mod` 11
+        result = (12 - remainder) `mod` 11
+        checkInt = if check == 'X' then 10 else digitToInt check
+    in result == checkInt
+    where
+        makeTotal :: Int -> [Int] -> Int
+        makeTotal a []     = a
+        makeTotal a (x:xs) = makeTotal ((a + x) * 2) xs
+
+renderORCID :: ORCID -> String
+renderORCID (ORCID nums check) =
+    intercalate "-" (chunks 4 nums) ++ [check]
+    where
+        chunks :: Int -> [a] -> [[a]]
+        chunks _ [] = []
+        chunks n xs =
+            let (ys, zs) = splitAt n xs
+            in  ys : chunks n zs
 
 data ReferenceStruct = ReferenceStruct
     { _referencesBibFile :: FilePath
