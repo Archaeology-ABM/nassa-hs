@@ -40,7 +40,6 @@ data NassaModuleYamlStruct = NassaModuleYamlStruct {
     , _nassaYamlInputs :: Maybe [ModuleInput]
     , _nassaYamlOutputs :: Maybe [ModuleOutput]
     -- , _nassaYamlDocsCheckList :: DocsCheckList
-    , _nassaYamlReadmeFile :: Maybe FilePath
     , _nassaYamlDocsDir :: Maybe FilePath
     , _nassaYamlLicense :: Maybe String
     } deriving (Show, Eq)
@@ -64,7 +63,6 @@ instance FromJSON NassaModuleYamlStruct where
         <*> v .:? "inputs"
         <*> v .:? "outputs"
         -- <*> v .:  "docsCheckList"
-        <*> v .:? "readmeFile"
         <*> v .:? "docsDir"
         <*> v .:? "license"
 
@@ -229,16 +227,14 @@ renderORCID (ORCID nums check) =
             in  ys : chunks n zs
 
 data ReferenceStruct = ReferenceStruct
-    { _referencesBibFile :: FilePath
-    , _referencesModuleReferences :: Maybe [String]
+    { _referencesModuleReferences :: Maybe [String]
     , _referencesUseExampleReferences :: Maybe [String]
     }
     deriving (Show, Eq)
 
 instance FromJSON ReferenceStruct where
     parseJSON = withObject "references" $ \v -> ReferenceStruct
-        <$> v .:  "bibFile"
-        <*> v .:? "moduleReferences"
+        <$> v .:? "moduleReferences"
         <*> v .:? "useExampleReferences"
 
 data DomainKeyword = DomainKeyword
@@ -256,7 +252,6 @@ instance FromJSON DomainKeyword where
 
 data Implementation = Implementation
     { _implementationLanguage :: ProgrammingLanguage
-    , _implementationCodeDir :: FilePath
     , _nassaYamlSoftwareDependencies :: [String]
     }
     deriving (Show, Eq)
@@ -264,8 +259,7 @@ data Implementation = Implementation
 instance FromJSON Implementation where
     parseJSON = withObject "implementations" $ \v -> Implementation
         <$> v .: "language"
-        <*> v .: "codeDir"
-        <*> v .:  "softwareDependencies"
+        <*> v .: "softwareDependencies"
 
 data ProgrammingLanguage = 
       LanguageR 
@@ -287,6 +281,16 @@ instance Show ProgrammingLanguage where
     show LanguageCsharp = "C#"
     show LanguageRuby = "Ruby"
     show LanguageProcessing = "Processing"
+
+pathName :: ProgrammingLanguage -> String
+pathName LanguageR = "r"
+pathName LanguagePython = "python"
+pathName LanguageNetLogo = "netlogo"
+pathName LanguageJava = "java"
+pathName LanguageJulia = "julia"
+pathName LanguageCsharp = "csharp"
+pathName LanguageRuby = "ruby"
+pathName LanguageProcessing = "processing"
 
 instance FromJSON ProgrammingLanguage where
     parseJSON = withText "programmingLanguage" $ \case

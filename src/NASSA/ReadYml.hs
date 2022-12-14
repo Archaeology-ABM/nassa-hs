@@ -94,43 +94,47 @@ readNassaYaml yamlPath = do
 
 checkIntegrity :: NassaModule -> IO NassaModule
 checkIntegrity (NassaModule (baseDir, yamlStruct)) = do
-    -- file existence checks
-    checkExistence doesFileExist _nassaYamlReadmeFile "readmeFile"
-    checkExistence doesDirectoryExist _nassaYamlDocsDir "docsDir"
+    checkFile "README.md"
+    checkDocsDir
     checkCodeDirsExistence
-    checkExistence doesFileExist (fmap _referencesBibFile . _nassaYamlReferences) "bibFile"
-    -- reference/bibtex integrity
-    checkReferences (_nassaYamlReferences yamlStruct)
-    -- return package
+    checkReferences
     return (NassaModule (baseDir, yamlStruct))
     where
         nassaID = _nassaYamlID yamlStruct
-        checkExistence :: (FilePath -> IO Bool) -> (NassaModuleYamlStruct -> Maybe FilePath) -> [Char] -> IO ()
-        checkExistence f el elS = 
-            case el yamlStruct of
-                Nothing -> return ()
-                Just p -> do 
-                    fe <- f $ baseDir </> p
-                    unless fe $ throwIO $
-                        NassaModuleIntegrityException nassaID $
-                        elS ++ " " ++ show p ++ " does not exist"
+        checkFile :: FilePath -> IO ()
+        checkFile p = do
+            let path = baseDir </> p
+            fe <- doesFileExist path
+            unless fe $ throwIO $
+                NassaModuleIntegrityException nassaID $
+                show path ++ " does not exist"
+        checkDocsDir :: IO ()
+        checkDocsDir = case _nassaYamlDocsDir yamlStruct of
+            Nothing -> return ()
+            Just p -> do
+                let path = baseDir </> p
+                fe <- doesDirectoryExist path
+                unless fe $ throwIO $
+                    NassaModuleIntegrityException nassaID $
+                    "Documentation directory " ++ show path ++ " does not exist"
         checkCodeDirsExistence :: IO ()
         checkCodeDirsExistence = do
-            let codeDirs = map _implementationCodeDir $ _nassaYamlImplementations yamlStruct
-            codeDirsExist <- mapM (\x -> doesDirectoryExist $ baseDir </> x) codeDirs
+            let codeDirs = map (\x -> baseDir </> pathName (_implementationLanguage x) ++ "_implementation") $ _nassaYamlImplementations yamlStruct
+            codeDirsExist <- mapM doesDirectoryExist codeDirs
             unless (and codeDirsExist) $ throwIO $
                 NassaModuleIntegrityException nassaID $
                 "One of the codeDirs (" ++ intercalate ", " codeDirs ++ ") does not exist"
-        checkReferences :: Maybe ReferenceStruct -> IO ()
-        checkReferences Nothing = return ()
-        checkReferences (Just (ReferenceStruct bibFilePath xs ys)) = do
-            -- read bibtex file
-            bib <- readBibTeXFile $ baseDir </> bibFilePath
-            -- match keys
-            let literatureInYml = nub $ concat $ maybeToList $ (++) <$> xs <*> ys
-            let literatureInBib = map bibEntryId bib
-            let literatureNotInBibButInYml = literatureInYml \\ literatureInBib
-            unless (null literatureNotInBibButInYml) $ 
-                throwIO $ NassaModuleIntegrityException nassaID $
-                    "Some papers referenced in the NASSA.yml file (" ++
-                    intercalate ", " literatureNotInBibButInYml ++ ") lack BibTeX entries"
+        checkReferences :: IO ()
+        checkReferences = do
+            checkFile "references.bib"
+            bib <- readBibTeXFile $ baseDir </> "references.bib"
+            case _nassaYamlReferences yamlStruct of
+                Nothing -> return ()
+                Just (ReferenceStruct xs ys) -> do
+                    let literatureInYml = nub $ concat $ maybeToList $ (++) <$> xs <*> ys
+                    let literatureInBib = map bibEntryId bib
+                    let literatureNotInBibButInYml = literatureInYml \\ literatureInBib
+                    unless (null literatureNotInBibButInYml) $ 
+                        throwIO $ NassaModuleIntegrityException nassaID $
+                            "Some papers referenced in the NASSA.yml file (" ++
+                            intercalate ", " literatureNotInBibButInYml ++ ") lack BibTeX entries"
