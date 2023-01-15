@@ -5,19 +5,19 @@ import           NASSA.BibTeX
 import           NASSA.Types
 import           NASSA.Utils
 
-import           Control.Exception          (throwIO, try)
-import           Control.Monad              (filterM, unless, forM_)
-import qualified Data.ByteString            as B
-import           Data.Char                  (isSpace)
-import           Data.Either                (lefts, rights)
-import           Data.List                  (intercalate, nub, (\\), elemIndex)
-import           Data.Maybe                 (maybeToList)
-import           Data.Yaml                  (decodeEither')
-import           System.Directory           (doesDirectoryExist, doesFileExist, 
-                                             listDirectory)
-import           System.FilePath            ((</>), takeFileName, takeDirectory)
-import           System.IO                  (IOMode (ReadMode), hGetContents,
-                                            hPutStrLn, stderr, withFile)
+import           Control.Exception (throwIO, try)
+import           Control.Monad     (filterM, forM_, unless)
+import qualified Data.ByteString   as B
+import           Data.Char         (isSpace)
+import           Data.Either       (lefts, rights)
+import           Data.List         (elemIndex, intercalate, nub, (\\))
+import           Data.Maybe        (maybeToList)
+import           Data.Yaml         (decodeEither')
+import           System.Directory  (doesDirectoryExist, doesFileExist,
+                                    listDirectory)
+import           System.FilePath   (takeDirectory, takeFileName, (</>))
+import           System.IO         (IOMode (ReadMode), hGetContents, hPutStrLn,
+                                    stderr, withFile)
 
 readNassaModuleCollection :: FilePath -> IO [NassaModule]
 readNassaModuleCollection baseDir = do
@@ -35,7 +35,7 @@ readNassaModuleCollection baseDir = do
         hPutStrLn stderr "Some files were skipped:"
         forM_ eitherYamls $ \case
             Left e -> hPutStrLn stderr (renderNassaException e)
-            _ -> return ()
+            _      -> return ()
     -- integrity checks
     let loadedYamlFiles = rights eitherYamls
     eitherModules <- mapM (try . checkIntegrity) loadedYamlFiles :: IO [Either NassaException NassaModule]
@@ -43,7 +43,7 @@ readNassaModuleCollection baseDir = do
         hPutStrLn stderr "Some modules are broken:"
         forM_ eitherModules $ \case
             Left e -> hPutStrLn stderr (renderNassaException e)
-            _ -> return ()
+            _      -> return ()
     -- report success
     let goodModules = rights eitherModules
     hPutStrLn stderr "***"
@@ -136,7 +136,7 @@ checkIntegrity (NassaModule (baseDir, yamlStruct)) = do
                     let literatureInYml = nub $ concat $ maybeToList $ (++) <$> xs <*> ys
                     let literatureInBib = map bibEntryId bib
                     let literatureNotInBibButInYml = literatureInYml \\ literatureInBib
-                    unless (null literatureNotInBibButInYml) $ 
+                    unless (null literatureNotInBibButInYml) $
                         throwIO $ NassaModuleIntegrityException nassaID $
                             "Some papers referenced in the NASSA.yml file (" ++
                             intercalate ", " literatureNotInBibButInYml ++ ") lack BibTeX entries"

@@ -2,17 +2,17 @@ import           NASSA.CLI.List
 import           NASSA.CLI.Validate
 import           NASSA.Types
 import           NASSA.Utils
-import           Paths_nassa                 (version)
+import           Paths_nassa         (version)
 
-import           Control.Exception          (catch)
-import           Data.List                  (intercalate)
-import           Data.Version               (showVersion)
-import qualified Options.Applicative        as OP
-import           System.Exit                (exitFailure)
-import           System.IO                  (hPutStrLn, stderr)
+import           Control.Exception   (catch)
+import           Data.List           (intercalate)
+import           Data.Version        (showVersion)
+import qualified Options.Applicative as OP
+import           System.Exit         (exitFailure)
+import           System.IO           (hPutStrLn, stderr)
 
 
-data Options = 
+data Options =
     CmdList ListOptions
   | CmdValidate ValidateOptions
 
@@ -33,8 +33,8 @@ main = do
 
 runCmd :: Options -> IO ()
 runCmd o = case o of
-    CmdList opts      -> runList opts
-    CmdValidate opts  -> runValidate opts
+    CmdList opts     -> runList opts
+    CmdValidate opts -> runValidate opts
 
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
@@ -46,8 +46,8 @@ versionOption :: OP.Parser (a -> a)
 versionOption = OP.infoOption (showVersion version) (OP.long "version" <> OP.help "Show version")
 
 renderVersion :: String
-renderVersion = 
-    "nassa v" ++ showVersion version ++ " for the NASSA standard v" ++ 
+renderVersion =
+    "nassa v" ++ showVersion version ++ " for the NASSA standard v" ++
     intercalate ", v" (map showNassaVersion validNassaVersions)-- ++ "\n" ++
     --"https://..."
 
@@ -80,13 +80,13 @@ parseBasePath = OP.strOption (
 
 parseRawOutput :: OP.Parser Bool
 parseRawOutput = OP.switch (
-    OP.long "raw" <> 
+    OP.long "raw" <>
     OP.help "output table as tsv without header. Useful for piping into grep or awk"
     )
 
 parseNoExitCode :: OP.Parser Bool
 parseNoExitCode = OP.switch (
-    OP.long "noExitCode" <> 
+    OP.long "noExitCode" <>
     OP.help "do not produce an explicit exit code" <>
     OP.hidden
     )
