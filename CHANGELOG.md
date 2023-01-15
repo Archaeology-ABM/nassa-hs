@@ -1,4 +1,4 @@
-- V 0.9.0: Changes for schema version 0.4.0: a number of files and directories became mandatory and got fixed names, so their paths can be excluded from the NASSA.yml file
+- V 0.9.0: Changes for schema version 0.5.0 (0.4.0 was skipped): a number of files and directories became mandatory and got fixed names, so their paths can be excluded from the NASSA.yml file. The package integrity checks are a bit more organised now
 - V 0.8.0: Added validation of the ORCID identifier
 - V 0.7.0: Adapted checks on softwareDependencies to nassa-schema v0.3.0
 - V 0.6.1: Discarded checks on designDetailsFile field
