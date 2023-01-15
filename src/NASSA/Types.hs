@@ -273,24 +273,24 @@ data ProgrammingLanguage =
     deriving (Eq)
 
 instance Show ProgrammingLanguage where
-    show LanguageR = "R"
-    show LanguagePython = "Python"
-    show LanguageNetLogo = "NetLogo"
-    show LanguageJava = "Java"
-    show LanguageJulia = "Julia"
-    show LanguageCsharp = "C#"
-    show LanguageRuby = "Ruby"
+    show LanguageR          = "R"
+    show LanguagePython     = "Python"
+    show LanguageNetLogo    = "NetLogo"
+    show LanguageJava       = "Java"
+    show LanguageJulia      = "Julia"
+    show LanguageCsharp     = "C#"
+    show LanguageRuby       = "Ruby"
     show LanguageProcessing = "Processing"
 
-pathName :: ProgrammingLanguage -> String
-pathName LanguageR = "r"
-pathName LanguagePython = "python"
-pathName LanguageNetLogo = "netlogo"
-pathName LanguageJava = "java"
-pathName LanguageJulia = "julia"
-pathName LanguageCsharp = "csharp"
-pathName LanguageRuby = "ruby"
-pathName LanguageProcessing = "processing"
+langInPathName :: ProgrammingLanguage -> String
+langInPathName LanguageR          = "r"
+langInPathName LanguagePython     = "python"
+langInPathName LanguageNetLogo    = "netlogo"
+langInPathName LanguageJava       = "java"
+langInPathName LanguageJulia      = "julia"
+langInPathName LanguageCsharp     = "csharp"
+langInPathName LanguageRuby       = "ruby"
+langInPathName LanguageProcessing = "processing"
 
 instance FromJSON ProgrammingLanguage where
     parseJSON = withText "programmingLanguage" $ \case

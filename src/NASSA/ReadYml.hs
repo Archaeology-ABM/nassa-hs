@@ -121,7 +121,7 @@ checkIntegrity (NassaModule (baseDir, yamlStruct)) = do
                     "Documentation directory " ++ show path ++ " does not exist"
         checkCodeDirsExistence :: IO ()
         checkCodeDirsExistence = do
-            let codeDirs = map (\x -> baseDir </> pathName (_implementationLanguage x) ++ "_implementation") $ _nassaYamlImplementations yamlStruct
+            let codeDirs = map (\x -> baseDir </> langInPathName (_implementationLanguage x) ++ "_implementation") $ _nassaYamlImplementations yamlStruct
             codeDirsExist <- mapM doesDirectoryExist codeDirs
             unless (and codeDirsExist) $ throwIO $
                 NassaModuleIntegrityException nassaID $
