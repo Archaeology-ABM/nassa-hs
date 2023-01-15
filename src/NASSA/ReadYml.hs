@@ -95,6 +95,8 @@ readNassaYaml yamlPath = do
 checkIntegrity :: NassaModule -> IO NassaModule
 checkIntegrity (NassaModule (baseDir, yamlStruct)) = do
     checkFile "README.md"
+    checkFile "CHANGELOG.md"
+    checkFile "LICENSE"
     checkDocsDir
     checkCodeDirsExistence
     checkReferences
