@@ -3,12 +3,11 @@ module NASSA.CLI.List where
 import           NASSA.ReadYml
 import           NASSA.Types
 
-import           Data.List                  (transpose, intercalate)
-import           Text.Layout.Table          (asciiRoundS, column, def,
-                                             expandUntil, rowsG, tableString,
-                                             titlesH, singleCutMark)
+import           Data.List         (intercalate, transpose)
+import           Text.Layout.Table (asciiRoundS, column, def, expandUntil,
+                                    rowsG, singleCutMark, tableString, titlesH)
 
-data ListOptions = ListOptions { 
+data ListOptions = ListOptions {
       _inPath :: FilePath
     , _optRaw :: Bool
     }

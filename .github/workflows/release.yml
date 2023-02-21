@@ -35,14 +35,14 @@ jobs:
           name: release_url
           path: release_url.txt
 
-  build_artifact:
+  build_linux_mac_artifact:
     needs: [create_release]
     name: ${{ matrix.os }}/GHC ${{ matrix.ghc }}/${{ github.ref }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, macOS-latest, windows-latest]
-        cabal: ["3.2"]
+        os: [ubuntu-18.04, macOS-latest]
+        cabal: ["3.6"]
         ghc: ["8.10.7"]
 
     steps:
@@ -57,7 +57,7 @@ jobs:
           tagRegexGroup: 1
 
       - name: Setup Haskell
-        uses: haskell/actions/setup@v1
+        uses: haskell/actions/setup@v2
         id: setup-haskell-cabal
         with:
           ghc-version: ${{ matrix.ghc }}
@@ -65,19 +65,24 @@ jobs:
 
       - name: Freeze
         run: |
-          cabal freeze
+          : # simdutf doesn't build on macOS any more, so we need to set a flag to ignore it when building the text package
+          if [ "$RUNNER_OS" == "Linux" ]; then
+              cabal freeze
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+              cabal freeze --constraint="any.text >= 2.0.1" --constraint="any.text -simdutf"
+          else
+              echo "$RUNNER_OS not supported"
+              exit 1
+          fi
+
       - name: Build
         run: |
           mkdir dist
           cabal install exe:nassa --install-method=copy --overwrite-policy=always --installdir=dist -fembed_data_files
-      - name: Set extension to .exe on Windows
-        if: matrix.os == 'windows-latest'
-        id: ifwin
-        run: echo "::set-output name=EXT::.exe"
 
       - name: Set binary path name
         id: binarypath
-        run: echo "::set-output name=BINARY_PATH::./dist/nassa${{ steps.ifwin.outputs.EXT }}"
+        run: echo "BINARY_PATH=./dist/nassa" >> $GITHUB_OUTPUT
 
       - name: Compress binary
         uses: svenstaro/upx-action@v2
@@ -91,8 +96,8 @@ jobs:
 
       - name: Get Release File Name & Upload URL
         id: get_release_info
-        run: |
-          echo "::set-output name=upload_url::$(cat release_url/release_url.txt)"
+        run: echo "upload_url=$(cat release_url/release_url.txt)" >> $GITHUB_OUTPUT
+
       - name: Upload Release Asset
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
@@ -101,5 +106,71 @@ jobs:
         with:
           upload_url: ${{ steps.get_release_info.outputs.upload_url }}
           asset_path: ${{ steps.binarypath.outputs.BINARY_PATH }}
-          asset_name: nassa-${{ runner.os }}${{ steps.ifwin.outputs.EXT }}
+          asset_name: nassa-${{ runner.os }}
+          asset_content_type: application/octet-stream
+
+  build_windows_artifact:
+    needs: [create_release]
+    name: ${{ matrix.os }}/GHC ${{ matrix.ghc }}/${{ github.ref }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+        cabal: ["3.6"]
+        ghc: ["8.10.7"]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set tag name
+        uses: olegtarasov/get-tag@v2.1
+        id: tagName
+        with:
+          tagRegex: "v(.*)"
+          tagRegexGroup: 1
+
+      - name: Setup Haskell
+        uses: haskell/actions/setup@v2
+        id: setup-haskell-cabal
+        with:
+          ghc-version: ${{ matrix.ghc }}
+          cabal-version: ${{ matrix.cabal }}
+
+      - name: Freeze
+        run: |
+          cabal freeze
+
+      - name: Build
+        run: |
+          mkdir dist
+          cabal install exe:nassa --install-method=copy --overwrite-policy=always --installdir=dist -fembed_data_files
+
+      - name: Set binary path name
+        id: binarypath
+        run: echo "BINARY_PATH=./dist/nassa.exe" >> $env:GITHUB_OUTPUT
+
+      - name: Compress binary
+        uses: svenstaro/upx-action@v2
+        with:
+          file: ${{ steps.binarypath.outputs.BINARY_PATH }}
+
+      - name: Load Release URL File from release job
+        uses: actions/download-artifact@v1
+        with:
+          name: release_url
+
+      - name: Get Release File Name & Upload URL
+        id: get_release_info
+        run: echo "upload_url=$(cat release_url/release_url.txt)" >> $env:GITHUB_OUTPUT
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_info.outputs.upload_url }}
+          asset_path: ${{ steps.binarypath.outputs.BINARY_PATH }}
+          asset_name: nassa-${{ runner.os }}.exe
           asset_content_type: application/octet-stream

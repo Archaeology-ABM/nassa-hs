@@ -1,48 +1,46 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE LambdaCase #-}
 
 module NASSA.Types where
 
-import           Control.Applicative        ((<|>))
-import           Control.Monad              (mzero, guard)
-import           Data.Aeson                 (FromJSON,
-                                             parseJSON, withObject,
-                                             (.:), (.:?), withText,
-                                             Value (String), ToJSON (..))
-import qualified Data.Text                  as T
-import qualified Data.Text.Encoding         as TS
-import           Data.Time                  (Day)
-import           Data.Version               (Version, makeVersion, showVersion)
-import qualified Text.Parsec                as P
-import qualified Text.Parsec.Text           as P
-import qualified Text.Email.Validate        as TEV
-import Data.Char (digitToInt)
-import Data.List (intercalate)
+import           Control.Applicative ((<|>))
+import           Control.Monad       (guard, mzero)
+import           Data.Aeson          (FromJSON, ToJSON (..), Value (String),
+                                      parseJSON, withObject, withText, (.:),
+                                      (.:?))
+import           Data.Char           (digitToInt)
+import           Data.List           (intercalate)
+import qualified Data.Text           as T
+import qualified Data.Text.Encoding  as TS
+import           Data.Time           (Day)
+import           Data.Version        (Version, makeVersion, showVersion)
+import qualified Text.Email.Validate as TEV
+import qualified Text.Parsec         as P
+import qualified Text.Parsec.Text    as P
 
 newtype NassaModule = NassaModule (FilePath, NassaModuleYamlStruct)
     deriving (Show, Eq)
 
 data NassaModuleYamlStruct = NassaModuleYamlStruct {
-      _nassaYamlID :: ModuleID
-    , _nassaNASSAVersion :: NassaVersion
-    , _nassaYamlModuleType :: ModuleType
-    , _nassaYamlTitle :: ModuleTitle
-    , _nassaYamlModuleVersion :: Version
-    , _nassaYamlContributors :: [Contributor]
-    , _nassaYamlLastUpdateDate :: Day
-    , _nassaYamlDescription :: String
-    , _nassaYamlRelatedModules :: Maybe [ModuleID]
-    , _nassaYamlReferences :: Maybe ReferenceStruct
-    , _nassaYamlDomainKeywords :: Maybe DomainKeyword
-    , _nassaYamlModellingKeywords :: [String]
+      _nassaYamlID                  :: ModuleID
+    , _nassaNASSAVersion            :: NassaVersion
+    , _nassaYamlModuleType          :: ModuleType
+    , _nassaYamlTitle               :: ModuleTitle
+    , _nassaYamlModuleVersion       :: Version
+    , _nassaYamlContributors        :: [Contributor]
+    , _nassaYamlLastUpdateDate      :: Day
+    , _nassaYamlDescription         :: String
+    , _nassaYamlRelatedModules      :: Maybe [ModuleID]
+    , _nassaYamlReferences          :: Maybe ReferenceStruct
+    , _nassaYamlDomainKeywords      :: Maybe DomainKeyword
+    , _nassaYamlModellingKeywords   :: [String]
     , _nassaYamlProgrammingKeywords :: [String]
-    , _nassaYamlImplementations :: [Implementation]
-    , _nassaYamlInputs :: Maybe [ModuleInput]
-    , _nassaYamlOutputs :: Maybe [ModuleOutput]
+    , _nassaYamlImplementations     :: [Implementation]
+    , _nassaYamlInputs              :: Maybe [ModuleInput]
+    , _nassaYamlOutputs             :: Maybe [ModuleOutput]
     -- , _nassaYamlDocsCheckList :: DocsCheckList
-    , _nassaYamlReadmeFile :: Maybe FilePath
-    , _nassaYamlDocsDir :: Maybe FilePath
-    , _nassaYamlLicense :: Maybe String
+    , _nassaYamlDocsDir             :: Maybe FilePath
+    , _nassaYamlLicense             :: Maybe String
     } deriving (Show, Eq)
 
 instance FromJSON NassaModuleYamlStruct where
@@ -64,7 +62,6 @@ instance FromJSON NassaModuleYamlStruct where
         <*> v .:? "inputs"
         <*> v .:? "outputs"
         -- <*> v .:  "docsCheckList"
-        <*> v .:? "readmeFile"
         <*> v .:? "docsDir"
         <*> v .:? "license"
 
@@ -77,12 +74,12 @@ instance Show ModuleID where
 
 instance FromJSON ModuleID where
     parseJSON (String s) = pure $ ModuleID $ T.unpack s
-    parseJSON _ = mzero
+    parseJSON _          = mzero
 
 type NassaVersion = Version
 
 validNassaVersions :: [NassaVersion]
-validNassaVersions = map makeVersion [[0,3,0]]
+validNassaVersions = map makeVersion [[0,5,0]]
 
 latestNassaVersion :: NassaVersion
 latestNassaVersion = last validNassaVersions
@@ -110,13 +107,13 @@ data ModuleType =
 
 instance Show ModuleType where
     show Algorithm = "Algorithm"
-    show Submodel = "Submodel"
+    show Submodel  = "Submodel"
 
 instance FromJSON ModuleType where
     parseJSON = withText "programmingLanguage" $ \case
-        "Algorithm"    -> pure Algorithm
-        "Submodel"     -> pure Submodel
-        other          -> fail $ "unknown module type: " ++ show other
+        "Algorithm" -> pure Algorithm
+        "Submodel"  -> pure Submodel
+        other       -> fail $ "unknown module type: " ++ show other
 
 data Contributor = Contributor
     { _contributorRole  :: [Role]
@@ -144,24 +141,24 @@ data Role =
   deriving (Eq)
 
 instance Show Role where
-    show RoleAuthor           = "Author"
-    show RoleCompiler         = "Compiler"
-    show RoleContributor      = "Contributor"
-    show RoleCopyrightHolder  = "Copyright Holder"
-    show RoleCreator          = "Creator"
-    show RoleThesisAdvisor    = "Thesis Advisor"
-    show RoleTranslator       = "Translator"
+    show RoleAuthor          = "Author"
+    show RoleCompiler        = "Compiler"
+    show RoleContributor     = "Contributor"
+    show RoleCopyrightHolder = "Copyright Holder"
+    show RoleCreator         = "Creator"
+    show RoleThesisAdvisor   = "Thesis Advisor"
+    show RoleTranslator      = "Translator"
 
 instance FromJSON Role where
     parseJSON = withText "role" $ \case
-        "Author"            -> pure RoleAuthor
-        "Compiler"          -> pure RoleCompiler
-        "Contributor"       -> pure RoleContributor
-        "Copyright Holder"  -> pure RoleCopyrightHolder
-        "Creator"           -> pure RoleCreator
-        "Thesis Advisor"    -> pure RoleThesisAdvisor
-        "Translator"        -> pure RoleTranslator
-        other               -> fail $ "unknown role: " ++ show other
+        "Author"           -> pure RoleAuthor
+        "Compiler"         -> pure RoleCompiler
+        "Contributor"      -> pure RoleContributor
+        "Copyright Holder" -> pure RoleCopyrightHolder
+        "Creator"          -> pure RoleCreator
+        "Thesis Advisor"   -> pure RoleThesisAdvisor
+        "Translator"       -> pure RoleTranslator
+        other              -> fail $ "unknown role: " ++ show other
 
 newtype Email = Email TEV.EmailAddress
     deriving (Show, Eq)
@@ -229,22 +226,20 @@ renderORCID (ORCID nums check) =
             in  ys : chunks n zs
 
 data ReferenceStruct = ReferenceStruct
-    { _referencesBibFile :: FilePath
-    , _referencesModuleReferences :: Maybe [String]
+    { _referencesModuleReferences     :: Maybe [String]
     , _referencesUseExampleReferences :: Maybe [String]
     }
     deriving (Show, Eq)
 
 instance FromJSON ReferenceStruct where
     parseJSON = withObject "references" $ \v -> ReferenceStruct
-        <$> v .:  "bibFile"
-        <*> v .:? "moduleReferences"
+        <$> v .:? "moduleReferences"
         <*> v .:? "useExampleReferences"
 
 data DomainKeyword = DomainKeyword
     { _keywordSubjects :: Maybe [String]
-    , _keywordRegions :: Maybe [String]
-    , _keywordPeriods :: Maybe [String]
+    , _keywordRegions  :: Maybe [String]
+    , _keywordPeriods  :: Maybe [String]
     }
     deriving (Show, Eq)
 
@@ -255,8 +250,7 @@ instance FromJSON DomainKeyword where
         <*> v .:? "periods"
 
 data Implementation = Implementation
-    { _implementationLanguage :: ProgrammingLanguage
-    , _implementationCodeDir :: FilePath
+    { _implementationLanguage        :: ProgrammingLanguage
     , _nassaYamlSoftwareDependencies :: [String]
     }
     deriving (Show, Eq)
@@ -264,11 +258,10 @@ data Implementation = Implementation
 instance FromJSON Implementation where
     parseJSON = withObject "implementations" $ \v -> Implementation
         <$> v .: "language"
-        <*> v .: "codeDir"
-        <*> v .:  "softwareDependencies"
+        <*> v .: "softwareDependencies"
 
-data ProgrammingLanguage = 
-      LanguageR 
+data ProgrammingLanguage =
+      LanguageR
     | LanguagePython
     | LanguageNetLogo
     | LanguageJava
@@ -279,32 +272,42 @@ data ProgrammingLanguage =
     deriving (Eq)
 
 instance Show ProgrammingLanguage where
-    show LanguageR = "R"
-    show LanguagePython = "Python"
-    show LanguageNetLogo = "NetLogo"
-    show LanguageJava = "Java"
-    show LanguageJulia = "Julia"
-    show LanguageCsharp = "C#"
-    show LanguageRuby = "Ruby"
+    show LanguageR          = "R"
+    show LanguagePython     = "Python"
+    show LanguageNetLogo    = "NetLogo"
+    show LanguageJava       = "Java"
+    show LanguageJulia      = "Julia"
+    show LanguageCsharp     = "C#"
+    show LanguageRuby       = "Ruby"
     show LanguageProcessing = "Processing"
+
+langInPathName :: ProgrammingLanguage -> String
+langInPathName LanguageR          = "r"
+langInPathName LanguagePython     = "python"
+langInPathName LanguageNetLogo    = "netlogo"
+langInPathName LanguageJava       = "java"
+langInPathName LanguageJulia      = "julia"
+langInPathName LanguageCsharp     = "csharp"
+langInPathName LanguageRuby       = "ruby"
+langInPathName LanguageProcessing = "processing"
 
 instance FromJSON ProgrammingLanguage where
     parseJSON = withText "programmingLanguage" $ \case
-        "R"            -> pure LanguageR
-        "Python"       -> pure LanguagePython
-        "NetLogo"      -> pure LanguageNetLogo
-        "Java"         -> pure LanguageJava
-        "Julia"        -> pure LanguageJulia
-        "C#"           -> pure LanguageCsharp
-        "Ruby"         -> pure LanguageRuby
-        "Processing"   -> pure LanguageProcessing
-        other          -> fail $ "unknown Language: " ++ show other
+        "R"          -> pure LanguageR
+        "Python"     -> pure LanguagePython
+        "NetLogo"    -> pure LanguageNetLogo
+        "Java"       -> pure LanguageJava
+        "Julia"      -> pure LanguageJulia
+        "C#"         -> pure LanguageCsharp
+        "Ruby"       -> pure LanguageRuby
+        "Processing" -> pure LanguageProcessing
+        other        -> fail $ "unknown Language: " ++ show other
 
 data ModuleInput = ModuleInput
-    { _inputName :: String
-    , _inputType :: Maybe String
-    , _inputUnit :: Maybe String
-    , _inputDefault :: Maybe String
+    { _inputName        :: String
+    , _inputType        :: Maybe String
+    , _inputUnit        :: Maybe String
+    , _inputDefault     :: Maybe String
     , _inputDescription :: Maybe String
     }
     deriving (Show, Eq)
@@ -327,9 +330,9 @@ instance FromJSON ModuleInput where
         <*> v .:? "description"
 
 data ModuleOutput = ModuleOutput
-    { _outputName :: String
-    , _outputType :: Maybe String
-    , _outputUnit :: Maybe String
+    { _outputName        :: String
+    , _outputType        :: Maybe String
+    , _outputUnit        :: Maybe String
     , _outputDescription :: Maybe String
     }
     deriving (Show, Eq)

@@ -2,13 +2,13 @@ module NASSA.CLI.Validate where
 
 import           NASSA.ReadYml
 
-import           Control.Monad            (unless)
-import           System.Exit              (exitFailure, exitSuccess)
-import           System.IO                (hPutStrLn, stdout)
+import           Control.Monad (unless)
+import           System.Exit   (exitFailure, exitSuccess)
+import           System.IO     (hPutStrLn, stdout)
 
-data ValidateOptions = ValidateOptions { 
-      _validateBaseDir :: FilePath
-    , _validateNoExitCode   :: Bool
+data ValidateOptions = ValidateOptions {
+      _validateBaseDir    :: FilePath
+    , _validateNoExitCode :: Bool
     }
 
 runValidate :: ValidateOptions -> IO ()
