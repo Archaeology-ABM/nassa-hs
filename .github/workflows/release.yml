@@ -11,29 +11,17 @@ on:
 jobs:
   create_release:
     name: Create Github Release
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          name: Release ${{ github.ref }}
           draft: true
-          prerelease: false
-
-      - name: Output Release URL File
-        run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
-      - name: Save Release URL File for publish
-        uses: actions/upload-artifact@v1
-        with:
-          name: release_url
-          path: release_url.txt
 
   build_linux_mac_artifact:
     needs: [create_release]
@@ -41,13 +29,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, macOS-latest]
+        os: [ubuntu-22.04, macOS-latest]
         cabal: ["3.6"]
         ghc: ["8.10.7"]
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set tag name
         uses: olegtarasov/get-tag@v2.1
@@ -89,25 +77,16 @@ jobs:
         with:
           file: ${{ steps.binarypath.outputs.BINARY_PATH }}
 
-      - name: Load Release URL File from release job
-        uses: actions/download-artifact@v1
-        with:
-          name: release_url
-
-      - name: Get Release File Name & Upload URL
-        id: get_release_info
-        run: echo "upload_url=$(cat release_url/release_url.txt)" >> $GITHUB_OUTPUT
-
       - name: Upload Release Asset
         id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          upload_url: ${{ steps.get_release_info.outputs.upload_url }}
-          asset_path: ${{ steps.binarypath.outputs.BINARY_PATH }}
-          asset_name: nassa-${{ runner.os }}
-          asset_content_type: application/octet-stream
+          name: Release ${{ github.ref }}
+          draft: true
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: nassa-${{ runner.os }}
+          artifactContentType: application/octet-stream
 
   build_windows_artifact:
     needs: [create_release]
@@ -155,22 +134,13 @@ jobs:
         with:
           file: ${{ steps.binarypath.outputs.BINARY_PATH }}
 
-      - name: Load Release URL File from release job
-        uses: actions/download-artifact@v1
-        with:
-          name: release_url
-
-      - name: Get Release File Name & Upload URL
-        id: get_release_info
-        run: echo "upload_url=$(cat release_url/release_url.txt)" >> $env:GITHUB_OUTPUT
-
       - name: Upload Release Asset
         id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          upload_url: ${{ steps.get_release_info.outputs.upload_url }}
-          asset_path: ${{ steps.binarypath.outputs.BINARY_PATH }}
-          asset_name: nassa-${{ runner.os }}.exe
-          asset_content_type: application/octet-stream
+          name: Release ${{ github.ref }}
+          draft: true
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: nassa-${{ runner.os }}.exe
+          artifactContentType: application/octet-stream
