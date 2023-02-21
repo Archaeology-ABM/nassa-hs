@@ -70,7 +70,11 @@ jobs:
 
       - name: Set binary path name
         id: binarypath
-        run: echo "BINARY_PATH=./dist/nassa" >> $GITHUB_OUTPUT
+        run: |
+          currentEXE="./dist/nassa"
+          newEXE="nassa-$RUNNER_OS"
+          mv $currentEXE $newEXE
+          echo "BINARY_PATH=$newEXE" >> $GITHUB_OUTPUT
 
       - name: Compress binary
         uses: svenstaro/upx-action@v2
@@ -85,7 +89,7 @@ jobs:
           draft: true
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: ./dist/nassa-${{ runner.os }}
+          artifacts: ${{ steps.binarypath.outputs.BINARY_PATH }}
           artifactContentType: application/octet-stream
 
   build_windows_artifact:
@@ -127,7 +131,11 @@ jobs:
 
       - name: Set binary path name
         id: binarypath
-        run: echo "BINARY_PATH=./dist/nassa.exe" >> $env:GITHUB_OUTPUT
+        run: |
+          currentEXE="./dist/nassa.exe"
+          newEXE="nassa-$RUNNER_OS.exe"
+          mv $currentEXE $newEXE
+          echo "BINARY_PATH=$newEXE" >> $GITHUB_OUTPUT
 
       - name: Compress binary
         uses: svenstaro/upx-action@v2
@@ -142,5 +150,5 @@ jobs:
           draft: true
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: ./dist/nassa-${{ runner.os }}.exe
+          artifacts: ${{ steps.binarypath.outputs.BINARY_PATH }}
           artifactContentType: application/octet-stream
