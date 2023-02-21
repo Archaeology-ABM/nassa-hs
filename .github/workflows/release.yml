@@ -132,10 +132,8 @@ jobs:
       - name: Set binary path name
         id: binarypath
         run: |
-          currentEXE="./dist/nassa.exe"
-          newEXE="nassa-$RUNNER_OS.exe"
-          mv $currentEXE $newEXE
-          echo "BINARY_PATH=$newEXE" >> $GITHUB_OUTPUT
+          Rename-Item -Path "./dist/nassa.exe" -NewName "./dist/nassa-Windows.exe"
+          echo "BINARY_PATH=./dist/nassa-Windows.exe" >> $env:GITHUB_OUTPUT
 
       - name: Compress binary
         uses: svenstaro/upx-action@v2
