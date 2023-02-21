@@ -75,7 +75,7 @@ jobs:
       - name: Compress binary
         uses: svenstaro/upx-action@v2
         with:
-          file: ${{ steps.binarypath.outputs.BINARY_PATH }}
+          files: ${{ steps.binarypath.outputs.BINARY_PATH }}
 
       - name: Upload Release Asset
         id: upload-release-asset
@@ -85,7 +85,7 @@ jobs:
           draft: true
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: nassa-${{ runner.os }}
+          artifacts: ./dist/nassa-${{ runner.os }}
           artifactContentType: application/octet-stream
 
   build_windows_artifact:
@@ -132,7 +132,7 @@ jobs:
       - name: Compress binary
         uses: svenstaro/upx-action@v2
         with:
-          file: ${{ steps.binarypath.outputs.BINARY_PATH }}
+          files: ${{ steps.binarypath.outputs.BINARY_PATH }}
 
       - name: Upload Release Asset
         id: upload-release-asset
@@ -142,5 +142,5 @@ jobs:
           draft: true
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: nassa-${{ runner.os }}.exe
+          artifacts: ./dist/nassa-${{ runner.os }}.exe
           artifactContentType: application/octet-stream
