@@ -25,7 +25,7 @@ jobs:
 
   build_linux_mac_artifact:
     needs: [create_release]
-    name: ${{ matrix.os }}/GHC ${{ matrix.ghc }}/${{ github.ref }}
+    name: ${{ matrix.os }}/GHC ${{ matrix.ghc }}/${{ github.ref_name }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -94,7 +94,7 @@ jobs:
 
   build_windows_artifact:
     needs: [create_release]
-    name: ${{ matrix.os }}/GHC ${{ matrix.ghc }}/${{ github.ref }}
+    name: ${{ matrix.os }}/GHC ${{ matrix.ghc }}/${{ github.ref_name }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
