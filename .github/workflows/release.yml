@@ -132,7 +132,7 @@ jobs:
       - name: Set binary path name
         id: binarypath
         run: |
-          Rename-Item -Path "./dist/nassa.exe" -NewName "./dist/nassa-Windows.exe"
+          Rename-Item -Path "./dist/nassa.exe" -NewName "nassa-Windows.exe"
           echo "BINARY_PATH=./dist/nassa-Windows.exe" >> $env:GITHUB_OUTPUT
 
       - name: Compress binary
