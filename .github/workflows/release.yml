@@ -1,5 +1,3 @@
-# taken from https://vrom911.github.io/blog/github-actions-releases
-
 name: Release
 
 on:
@@ -11,10 +9,10 @@ on:
 jobs:
   create_release:
     name: Create Github Release
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Create Release
         id: create_release
@@ -23,19 +21,17 @@ jobs:
           name: Release ${{ github.ref_name }}
           draft: true
 
-  build_linux_mac_artifact:
+  build_normal_artifacts:
     needs: [create_release]
-    name: ${{ matrix.os }}/GHC ${{ matrix.ghc }}/${{ github.ref_name }}
+    name: ${{ matrix.os }}/${{ github.ref }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, macOS-latest]
-        cabal: ["3.6"]
-        ghc: ["8.10.7"]
+        os: [ubuntu-20.04, macOS-13, macOS-14, windows-latest]
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set tag name
         uses: olegtarasov/get-tag@v2.1
@@ -44,98 +40,34 @@ jobs:
           tagRegex: "v(.*)"
           tagRegexGroup: 1
 
-      - name: Setup Haskell
-        uses: haskell/actions/setup@v2
-        id: setup-haskell-cabal
+      - name: Install stack on macOS, where it is not present (https://github.com/freckle/stack-action/issues/80)
+        if: ${{ runner.os == 'macOS' }}
+        run: curl -sSL https://get.haskellstack.org/ | sh
+
+      - name: Build executable
+        uses: freckle/stack-action@v5
+        id: stack
         with:
-          ghc-version: ${{ matrix.ghc }}
-          cabal-version: ${{ matrix.cabal }}
-
-      - name: Freeze
-        run: |
-          : # simdutf doesn't build on macOS any more, so we need to set a flag to ignore it when building the text package
-          if [ "$RUNNER_OS" == "Linux" ]; then
-              cabal freeze
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-              cabal freeze --constraint="any.text >= 2.0.1" --constraint="any.text -simdutf"
-          else
-              echo "$RUNNER_OS not supported"
-              exit 1
-          fi
-
-      - name: Build
-        run: |
-          mkdir dist
-          cabal install exe:nassa --install-method=copy --overwrite-policy=always --installdir=dist -fembed_data_files
+          test: false
+          stack-build-arguments: --copy-bins --ghc-options="-O2"
 
       - name: Set binary path name
         id: binarypath
         run: |
-          currentEXE="./dist/nassa"
-          newEXE="nassa-$RUNNER_OS"
-          mv $currentEXE $newEXE
-          echo "BINARY_PATH=$newEXE" >> $GITHUB_OUTPUT
+             if [ "$RUNNER_OS" == "Windows" ]; then
+                 newEXE="nassa-$RUNNER_OS.exe"
+             elif [ "$RUNNER_OS" == "macOS" ]; then
+                 newEXE="nassa-$RUNNER_OS-$RUNNER_ARCH"
+             else
+                 newEXE="nassa-$RUNNER_OS"
+             fi
+             currentEXE="${{ steps.stack.outputs.local-bin }}/nassa"
+             mv $currentEXE $newEXE
+             echo "BINARY_PATH=$newEXE" >> $GITHUB_OUTPUT
+        shell: bash
 
       - name: Compress binary
-        uses: svenstaro/upx-action@v2
-        with:
-          files: ${{ steps.binarypath.outputs.BINARY_PATH }}
-
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: ncipollo/release-action@v1
-        with:
-          name: Release ${{ github.ref_name }}
-          draft: true
-          allowUpdates: true
-          artifactErrorsFailBuild: true
-          artifacts: ${{ steps.binarypath.outputs.BINARY_PATH }}
-          artifactContentType: application/octet-stream
-
-  build_windows_artifact:
-    needs: [create_release]
-    name: ${{ matrix.os }}/GHC ${{ matrix.ghc }}/${{ github.ref_name }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest]
-        cabal: ["3.6"]
-        ghc: ["8.10.7"]
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v2
-
-      - name: Set tag name
-        uses: olegtarasov/get-tag@v2.1
-        id: tagName
-        with:
-          tagRegex: "v(.*)"
-          tagRegexGroup: 1
-
-      - name: Setup Haskell
-        uses: haskell/actions/setup@v2
-        id: setup-haskell-cabal
-        with:
-          ghc-version: ${{ matrix.ghc }}
-          cabal-version: ${{ matrix.cabal }}
-
-      - name: Freeze
-        run: |
-          cabal freeze
-
-      - name: Build
-        run: |
-          mkdir dist
-          cabal install exe:nassa --install-method=copy --overwrite-policy=always --installdir=dist -fembed_data_files
-
-      - name: Set binary path name
-        id: binarypath
-        run: |
-          Rename-Item -Path "./dist/nassa.exe" -NewName "nassa-Windows.exe"
-          echo "BINARY_PATH=./dist/nassa-Windows.exe" >> $env:GITHUB_OUTPUT
-
-      - name: Compress binary
+        if: ${{ runner.os != 'macOS' }} # upx is crashing for macOS Ventura or above!
         uses: svenstaro/upx-action@v2
         with:
           files: ${{ steps.binarypath.outputs.BINARY_PATH }}
