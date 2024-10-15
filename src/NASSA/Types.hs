@@ -3,7 +3,7 @@
 
 module NASSA.Types where
 
-import NASSA.SPDXLicense
+import           NASSA.SPDXLicense
 
 import           Control.Applicative ((<|>))
 import           Control.Monad       (guard, mzero)

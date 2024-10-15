@@ -1,17 +1,17 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module NASSA.SPDXLicense where
 
-import qualified Data.FileEmbed as FE
-import Data.ByteString (ByteString)
-import qualified Data.ByteString.Lazy as BL
-import Data.Aeson
-import qualified Data.Text           as T
-import           Control.Monad       (mzero)
-import           Options.Applicative.Help.Levenshtein (editDistance)
-import Data.Maybe (fromJust)
+import           Control.Monad                        (mzero)
+import           Data.Aeson
+import           Data.ByteString                      (ByteString)
+import qualified Data.ByteString.Lazy                 as BL
+import qualified Data.FileEmbed                       as FE
 import           Data.List                            (elemIndex)
+import           Data.Maybe                           (fromJust)
+import qualified Data.Text                            as T
+import           Options.Applicative.Help.Levenshtein (editDistance)
 
 
 licensesJSONFileBS :: ByteString
@@ -19,7 +19,7 @@ licensesJSONFileBS = $(FE.embedFile "data/licenses.json")
 
 data LicensesJSON = LicensesJSON {
     _ljLicenseListVersion :: T.Text,
-    _ljLicenses :: [License]
+    _ljLicenses           :: [License]
 }
 
 instance FromJSON LicensesJSON where
@@ -39,14 +39,14 @@ instance FromJSON License where
 
 validLicenseIDs :: [T.Text]
 validLicenseIDs =
-    case eitherDecode (BL.fromStrict licensesJSONFileBS) of 
-        Left _ -> []
+    case eitherDecode (BL.fromStrict licensesJSONFileBS) of
+        Left _                          -> []
         Right (LicensesJSON _ licenses) -> map _lID licenses
- 
+
 validLicenseIDsString :: [String]
 validLicenseIDsString = map T.unpack validLicenseIDs
- 
-data SPDXLicense = SPDXLicense T.Text deriving (Show, Eq)
+
+newtype SPDXLicense = SPDXLicense T.Text deriving (Show, Eq)
 
 instance FromJSON SPDXLicense where
     parseJSON (String s) =
