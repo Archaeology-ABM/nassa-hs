@@ -1,4 +1,4 @@
-resolver: lts-18.28
+resolver: lts-21.17
 
 packages:
 - .
@@ -6,3 +6,4 @@ extra-deps:
 - table-layout-0.9.1.0
 - yaml-pretty-extras-0.0.2.2
 - data-default-instances-base-0.1.0.1
+allow-newer: true

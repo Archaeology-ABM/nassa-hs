@@ -3,6 +3,8 @@
 
 module NASSA.Types where
 
+import NASSA.SPDXLicense
+
 import           Control.Applicative ((<|>))
 import           Control.Monad       (guard, mzero)
 import           Data.Aeson          (FromJSON, ToJSON (..), Value (String),
@@ -40,7 +42,7 @@ data NassaModuleYamlStruct = NassaModuleYamlStruct {
     , _nassaYamlOutputs             :: Maybe [ModuleOutput]
     -- , _nassaYamlDocsCheckList :: DocsCheckList
     , _nassaYamlDocsDir             :: Maybe FilePath
-    , _nassaYamlLicense             :: Maybe String
+    , _nassaYamlLicense             :: Maybe SPDXLicense
     } deriving (Show, Eq)
 
 instance FromJSON NassaModuleYamlStruct where
@@ -79,7 +81,7 @@ instance FromJSON ModuleID where
 type NassaVersion = Version
 
 validNassaVersions :: [NassaVersion]
-validNassaVersions = map makeVersion [[0,5,0]]
+validNassaVersions = map makeVersion [[0,5,1]]
 
 latestNassaVersion :: NassaVersion
 latestNassaVersion = last validNassaVersions
