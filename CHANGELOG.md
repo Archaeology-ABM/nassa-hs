@@ -1,7 +1,6 @@
 - V 1.0.0.0:
     - Switched to PvP versioning and started with v1.0.0.0
     - Switched to GHC 9.6.6 and stackage resolver lts-22.43
-    
 - V 0.10.0: Changes for schema version 0.5.1: implemented license validation according to the SPDX License List (https://spdx.org/licenses), Version: 3.25.0 2024-08-19
 - V 0.9.0: Changes for schema version 0.5.0 (0.4.0 was skipped): a number of files and directories became mandatory and got fixed names, so their paths can be excluded from the NASSA.yml file. The package integrity checks are a bit more organised now
 - V 0.8.0: Added validation of the ORCID identifier
