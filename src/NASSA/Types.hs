@@ -31,7 +31,7 @@ data NassaModuleYamlStruct = NassaModuleYamlStruct {
     , _nassaYamlModuleVersion       :: Version
     , _nassaYamlContributors        :: [Contributor]
     , _nassaYamlLastUpdateDate      :: Day
-    , _nassaYamlDescription         :: String
+    , _nassaYamlDescription         :: ModuleDescription
     , _nassaYamlRelatedModules      :: Maybe [ModuleID]
     , _nassaYamlReferences          :: Maybe ReferenceStruct
     , _nassaYamlDomainKeywords      :: Maybe DomainKeyword
@@ -97,9 +97,22 @@ instance Show ModuleTitle where
 
 instance FromJSON ModuleTitle where
     parseJSON (String s) =
-        if T.length s <= 100
+        if T.length s <= 50
         then pure $ ModuleTitle $ T.unpack s
-        else fail "module title must not be longer than 100 characters"
+        else fail "module title must not be longer than 50 characters"
+    parseJSON _ = mzero
+
+newtype ModuleDescription = ModuleDescription String
+    deriving (Eq)
+
+instance Show ModuleDescription where
+    show (ModuleDescription s) = s
+
+instance FromJSON ModuleDescription where
+    parseJSON (String s) =
+        if T.length s <= 300
+        then pure $ ModuleDescription $ T.unpack s
+        else fail "module description must not be longer than 300 characters"
     parseJSON _ = mzero
 
 data ModuleType =
