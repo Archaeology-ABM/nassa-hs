@@ -10,7 +10,7 @@ import           Control.Monad       (guard, mzero)
 import           Data.Aeson          (FromJSON, ToJSON (..), Value (String),
                                       parseJSON, withObject, withText, (.:),
                                       (.:?))
-import           Data.Char           (digitToInt)
+import           Data.Char           (digitToInt, toLower)
 import           Data.List           (intercalate)
 import qualified Data.Text           as T
 import qualified Data.Text.Encoding  as TS
@@ -19,6 +19,7 @@ import           Data.Version        (Version, makeVersion, showVersion)
 import qualified Text.Email.Validate as TEV
 import qualified Text.Parsec         as P
 import qualified Text.Parsec.Text    as P
+import System.FilePath (takeExtension)
 
 newtype NassaModule = NassaModule (FilePath, NassaModuleYamlStruct)
     deriving (Show, Eq)
@@ -32,6 +33,7 @@ data NassaModuleYamlStruct = NassaModuleYamlStruct {
     , _nassaYamlContributors        :: [Contributor]
     , _nassaYamlLastUpdateDate      :: Day
     , _nassaYamlDescription         :: ModuleDescription
+    , _nassaYamlCoverImagePath      :: Maybe ModuleImagePath
     , _nassaYamlRelatedModules      :: Maybe [ModuleID]
     , _nassaYamlReferences          :: Maybe ReferenceStruct
     , _nassaYamlDomainKeywords      :: Maybe DomainKeyword
@@ -55,6 +57,7 @@ instance FromJSON NassaModuleYamlStruct where
         <*> v .:  "contributors"
         <*> v .:  "lastUpdateDate"
         <*> v .:  "description"
+        <*> v .:  "coverImage"
         <*> v .:? "relatedModules"
         <*> v .:? "references"
         <*> v .:? "domainKeywords"
@@ -113,6 +116,20 @@ instance FromJSON ModuleDescription where
         if T.length s <= 300
         then pure $ ModuleDescription $ T.unpack s
         else fail "module description must not be longer than 300 characters"
+    parseJSON _ = mzero
+
+newtype ModuleImagePath = ModuleImagePath FilePath
+    deriving (Eq)
+
+instance Show ModuleImagePath where
+    show (ModuleImagePath p) = p
+
+instance FromJSON ModuleImagePath where
+    parseJSON (String s) =
+        let path = T.unpack s
+        in if map toLower (takeExtension path) `elem` ["png", "jpg", "jpeg", "svg"]
+           then pure $ ModuleImagePath $ path
+           else fail "cover image must have extension png, jpg, jpeg, or svg"
     parseJSON _ = mzero
 
 data ModuleType =
