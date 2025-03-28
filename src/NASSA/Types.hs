@@ -84,7 +84,7 @@ instance FromJSON ModuleID where
 type NassaVersion = Version
 
 validNassaVersions :: [NassaVersion]
-validNassaVersions = map makeVersion [[0,5,1]]
+validNassaVersions = map makeVersion [[1,0,0]]
 
 latestNassaVersion :: NassaVersion
 latestNassaVersion = last validNassaVersions
