@@ -57,7 +57,7 @@ instance FromJSON NassaModuleYamlStruct where
         <*> v .:  "contributors"
         <*> v .:  "lastUpdateDate"
         <*> v .:  "description"
-        <*> v .:  "coverImage"
+        <*> v .:? "coverImage"
         <*> v .:? "relatedModules"
         <*> v .:? "references"
         <*> v .:? "domainKeywords"

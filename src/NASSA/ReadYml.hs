@@ -23,15 +23,18 @@ import           System.FilePath    (takeDirectory, takeFileName, (</>))
 import           System.IO          (IOMode (ReadMode), hGetContents, hPutStrLn,
                                      stderr, withFile)
 
-readNassaModuleCollection :: FilePath -> IO [NassaModule]
-readNassaModuleCollection baseDir = do
+readNassaModuleCollection :: Bool -> FilePath -> IO [NassaModule]
+readNassaModuleCollection ignoreVersion baseDir = do
     -- search yml files
     hPutStrLn stderr "Searching NASSA.yml files... "
     yamlFilePaths <- findAllNassaYamlFiles baseDir
     hPutStrLn stderr $ show (length yamlFilePaths) ++ " found"
     -- remove yml files with wrong nassaVersion
-    hPutStrLn stderr "Checking NASSA versions... "
-    yamlFilePathsInVersionRange <- filterByNassaVersion yamlFilePaths
+    yamlFilePathsInVersionRange <- if ignoreVersion
+        then pure yamlFilePaths
+        else do
+            hPutStrLn stderr "Checking NASSA versions... "
+            filterByNassaVersion yamlFilePaths
     -- parse yml files
     hPutStrLn stderr "Loading NASSA.yml files... "
     eitherYamls <- mapM (try . readNassaYaml) yamlFilePathsInVersionRange :: IO [Either NassaException NassaModule]

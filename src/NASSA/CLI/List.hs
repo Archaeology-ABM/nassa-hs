@@ -10,11 +10,12 @@ import           Text.Layout.Table (asciiRoundS, column, def, expandUntil,
 data ListOptions = ListOptions {
       _inPath :: FilePath
     , _optRaw :: Bool
+    , _listIgnoreVersion :: Bool
     }
 
 runList :: ListOptions -> IO ()
-runList (ListOptions baseDir rawOutput) = do
-    yamlCollection <- readNassaModuleCollection baseDir
+runList (ListOptions baseDir rawOutput ignoreVersion) = do
+    yamlCollection <- readNassaModuleCollection ignoreVersion baseDir
     printModuleTable rawOutput yamlCollection
 
 printModuleTable :: Bool -> [NassaModule] -> IO ()
