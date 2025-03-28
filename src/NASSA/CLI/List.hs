@@ -8,8 +8,8 @@ import           Text.Layout.Table (asciiRoundS, column, def, expandUntil,
                                     rowsG, singleCutMark, tableString, titlesH)
 
 data ListOptions = ListOptions {
-      _inPath :: FilePath
-    , _optRaw :: Bool
+      _inPath            :: FilePath
+    , _optRaw            :: Bool
     , _listIgnoreVersion :: Bool
     }
 

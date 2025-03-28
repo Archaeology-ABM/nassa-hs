@@ -7,8 +7,8 @@ import           System.Exit   (exitFailure, exitSuccess)
 import           System.IO     (hPutStrLn, stdout)
 
 data ValidateOptions = ValidateOptions {
-      _validateBaseDir    :: FilePath
-    , _validateNoExitCode :: Bool
+      _validateBaseDir       :: FilePath
+    , _validateNoExitCode    :: Bool
     , _validateIgnoreVersion :: Bool
     }
 

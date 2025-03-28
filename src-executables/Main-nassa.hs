@@ -92,7 +92,7 @@ parseNoExitCode = OP.switch (
     OP.help "do not produce an explicit exit code" <>
     OP.hidden
     )
-    
+
 parseIgnoreVersion :: OP.Parser Bool
 parseIgnoreVersion = OP.switch (
     OP.long "ignoreVersion" <>

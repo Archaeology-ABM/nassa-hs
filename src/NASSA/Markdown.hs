@@ -2,10 +2,10 @@
 
 module NASSA.Markdown (getDoc, extractSection) where
 
-import CMark
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
+import           CMark
 import qualified Data.ByteString    as B
+import qualified Data.Text          as T
+import qualified Data.Text.Encoding as T
 
 getDoc :: FilePath -> IO Node
 getDoc path = do

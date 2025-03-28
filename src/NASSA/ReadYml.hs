@@ -4,25 +4,25 @@
 module NASSA.ReadYml where
 
 import           NASSA.BibTeX
+import           NASSA.Markdown
 import           NASSA.Types
 import           NASSA.Utils
-import NASSA.Markdown
 
-import           Control.Exception  (throwIO, try)
-import           Control.Monad      (filterM, forM_, unless)
-import qualified Data.ByteString    as B
-import           Data.Char          (isSpace)
-import           Data.Either        (lefts, rights)
-import           Data.List          (elemIndex, intercalate, nub, (\\))
-import           Data.Maybe         (maybeToList)
-import qualified Data.Text          as T
-import           Data.Yaml          (decodeEither')
-import           System.Directory   (doesDirectoryExist, doesFileExist,
-                                     listDirectory)
-import           System.FilePath    (takeDirectory, takeFileName, (</>))
-import           System.IO          (IOMode (ReadMode), hGetContents, hPutStrLn,
-                                     stderr, withFile)
-import qualified Control.Monad as OP
+import           Control.Exception (throwIO, try)
+import           Control.Monad     (filterM, forM_, unless)
+import qualified Control.Monad     as OP
+import qualified Data.ByteString   as B
+import           Data.Char         (isSpace)
+import           Data.Either       (lefts, rights)
+import           Data.List         (elemIndex, intercalate, nub, (\\))
+import           Data.Maybe        (maybeToList)
+import qualified Data.Text         as T
+import           Data.Yaml         (decodeEither')
+import           System.Directory  (doesDirectoryExist, doesFileExist,
+                                    listDirectory)
+import           System.FilePath   (takeDirectory, takeFileName, (</>))
+import           System.IO         (IOMode (ReadMode), hGetContents, hPutStrLn,
+                                    stderr, withFile)
 
 readNassaModuleCollection :: Bool -> FilePath -> IO [NassaModule]
 readNassaModuleCollection ignoreVersion baseDir = do
@@ -127,7 +127,7 @@ checkIntegrity (NassaModule (baseDir, yamlStruct)) = do
             if   nrChars == 0
             then throwIO $ NassaModuleIntegrityException nassaID
                  "README.md file does not have a '## Further information' section, or the section is empty"
-            else do   
+            else do
                 OP.when (nrChars > 10000) $
                     throwIO $ NassaModuleIntegrityException nassaID $
                     "The '## Further information' section in the README.md file has more than 10000 characters. " ++
