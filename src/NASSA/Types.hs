@@ -16,10 +16,10 @@ import qualified Data.Text           as T
 import qualified Data.Text.Encoding  as TS
 import           Data.Time           (Day)
 import           Data.Version        (Version, makeVersion, showVersion)
+import           System.FilePath     (takeExtension)
 import qualified Text.Email.Validate as TEV
 import qualified Text.Parsec         as P
 import qualified Text.Parsec.Text    as P
-import System.FilePath (takeExtension)
 
 newtype NassaModule = NassaModule (FilePath, NassaModuleYamlStruct)
     deriving (Show, Eq)

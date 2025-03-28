@@ -1,23 +1,27 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module NASSA.ReadYml where
 
 import           NASSA.BibTeX
 import           NASSA.Types
 import           NASSA.Utils
 
-import           Control.Exception (throwIO, try)
-import           Control.Monad     (filterM, forM_, unless)
-import qualified Data.ByteString   as B
-import           Data.Char         (isSpace)
-import           Data.Either       (lefts, rights)
-import           Data.List         (elemIndex, intercalate, nub, (\\))
-import           Data.Maybe        (maybeToList)
-import           Data.Yaml         (decodeEither')
-import           System.Directory  (doesDirectoryExist, doesFileExist,
-                                    listDirectory)
-import           System.FilePath   (takeDirectory, takeFileName, (</>))
-import           System.IO         (IOMode (ReadMode), hGetContents, hPutStrLn,
-                                    stderr, withFile)
+import           Control.Exception  (throwIO, try)
+import           Control.Monad      (filterM, forM_, unless)
+import qualified Data.ByteString    as B
+import           Data.Char          (isSpace)
+import           Data.Either        (lefts, rights)
+import           Data.List          (elemIndex, intercalate, nub, (\\))
+import           Data.Maybe         (maybeToList)
+import qualified Data.Text          as T
+import qualified Data.Text.Encoding as T
+import           Data.Yaml          (decodeEither')
+import           System.Directory   (doesDirectoryExist, doesFileExist,
+                                     listDirectory)
+import           System.FilePath    (takeDirectory, takeFileName, (</>))
+import           System.IO          (IOMode (ReadMode), hGetContents, hPutStrLn,
+                                     stderr, withFile)
 
 readNassaModuleCollection :: FilePath -> IO [NassaModule]
 readNassaModuleCollection baseDir = do
@@ -110,6 +114,12 @@ checkIntegrity (NassaModule (baseDir, yamlStruct)) = do
             unless fe $ throwIO $
                 NassaModuleIntegrityException nassaID $
                 show path ++ " does not exist"
+        checkReadme :: IO ()
+        checkReadme = do
+            readmeFull <- fmap T.decodeUtf8Lenient $ B.readFile $ baseDir </> "README.md"
+            let furtherInfo = T.concat $ dropWhile (/= "## Further information") $ T.lines readmeFull
+                nrChars = T.length furtherInfo
+            hPutStrLn stderr $ show nrChars
         checkDocsDir :: IO ()
         checkDocsDir = case _nassaYamlDocsDir yamlStruct of
             Nothing -> return ()
