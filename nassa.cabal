@@ -15,11 +15,11 @@ extra-source-files:  README.md,
 library
     exposed-modules:    NASSA.Types, NASSA.Utils, NASSA.ReadYml
                         NASSA.CLI.List, NASSA.CLI.Validate, NASSA.BibTeX,
-                        NASSA.SPDXLicense
+                        NASSA.SPDXLicense, NASSA.Markdown
     hs-source-dirs:     src
     build-depends:      base, filepath, aeson, bytestring, yaml,
                         directory, table-layout, time, parsec, email-validate,
-                        text, file-embed, optparse-applicative
+                        text, file-embed, optparse-applicative, cmark
     default-language:   Haskell2010
 
 executable nassa
