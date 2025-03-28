@@ -12,7 +12,7 @@ nassa list -d .
 
 For stable release versions we automatically prepare binaries that can be downloaded and run without further installation.
 
-You can download them here: [ [Linux 📥](https://github.com/Archaeology-ABM/nassa-hs/releases/latest/download/nassa-Linux) | [macOS 📥](https://github.com/Archaeology-ABM/nassa-hs/releases/latest/download/nassa-macOS) | [Windows 📥](https://github.com/Archaeology-ABM/nassa-hs/releases/latest/download/nassa-Windows.exe) ]. Older release versions are available [here](https://github.com/Archaeology-ABM/nassa-hs/releases).
+You can download them here: [ [Linux 📥](https://github.com/Archaeology-ABM/nassa-hs/releases/latest/download/nassa-Linux) | [macOS (ARM64) 📥](https://github.com/Archaeology-ABM/nassa-hs/releases/latest/download/nassa-macOS-ARM64) | [macOS (X64) 📥](https://github.com/Archaeology-ABM/nassa-hs/releases/latest/download/nassa-macOS-X64) | [Windows 📥](https://github.com/Archaeology-ABM/nassa-hs/releases/latest/download/nassa-Windows.exe) ]. Older release versions are available [here](https://github.com/Archaeology-ABM/nassa-hs/releases).
 
 #### Linux
 
