@@ -7,14 +7,15 @@ import           System.Exit   (exitFailure, exitSuccess)
 import           System.IO     (hPutStrLn, stdout)
 
 data ValidateOptions = ValidateOptions {
-      _validateBaseDir    :: FilePath
-    , _validateNoExitCode :: Bool
+      _validateBaseDir       :: FilePath
+    , _validateNoExitCode    :: Bool
+    , _validateIgnoreVersion :: Bool
     }
 
 runValidate :: ValidateOptions -> IO ()
-runValidate (ValidateOptions baseDir noExitCode) = do
+runValidate (ValidateOptions baseDir noExitCode ignoreVersion) = do
     nassaYmlFiles <- findAllNassaYamlFiles baseDir
-    yamlCollection <- readNassaModuleCollection baseDir
+    yamlCollection <- readNassaModuleCollection ignoreVersion baseDir
     let numberOfNASSAymlFiles = length nassaYmlFiles
         numberOfLoadedModules = length yamlCollection
     if numberOfNASSAymlFiles == numberOfLoadedModules

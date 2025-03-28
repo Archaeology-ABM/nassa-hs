@@ -1,3 +1,8 @@
+- V 1.0.1.0: Changes for schema version 1.0.0
+    - Implemened the `coverImage` field in the representation of the NASSA.yml file, including file extension validation
+    - Introduced new character count limits for the `title` and `description` fields
+    - Added parsing of the README.md file to validate the length of the '## Further information' section
+    - Added an option `--ignoreVersion` to the `list` and `validate` subcommands for easier testing
 - V 1.0.0.0:
     - Switched to PvP versioning and started with v1.0.0.0
     - Switched to GHC 9.6.6 and stackage resolver lts-22.43

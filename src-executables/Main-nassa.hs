@@ -66,10 +66,12 @@ optParser = OP.subparser (
 listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseBasePath
                             <*> parseRawOutput
+                            <*> parseIgnoreVersion
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePath
                                     <*> parseNoExitCode
+                                    <*> parseIgnoreVersion
 
 parseBasePath :: OP.Parser FilePath
 parseBasePath = OP.strOption (
@@ -89,4 +91,10 @@ parseNoExitCode = OP.switch (
     OP.long "noExitCode" <>
     OP.help "do not produce an explicit exit code" <>
     OP.hidden
+    )
+
+parseIgnoreVersion :: OP.Parser Bool
+parseIgnoreVersion = OP.switch (
+    OP.long "ignoreVersion" <>
+    OP.help "ignore the NASSA standard version in the nassaVersion field and attempt to read anyway"
     )

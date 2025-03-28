@@ -1,17 +1,22 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module NASSA.ReadYml where
 
 import           NASSA.BibTeX
+import           NASSA.Markdown
 import           NASSA.Types
 import           NASSA.Utils
 
 import           Control.Exception (throwIO, try)
 import           Control.Monad     (filterM, forM_, unless)
+import qualified Control.Monad     as OP
 import qualified Data.ByteString   as B
 import           Data.Char         (isSpace)
 import           Data.Either       (lefts, rights)
 import           Data.List         (elemIndex, intercalate, nub, (\\))
 import           Data.Maybe        (maybeToList)
+import qualified Data.Text         as T
 import           Data.Yaml         (decodeEither')
 import           System.Directory  (doesDirectoryExist, doesFileExist,
                                     listDirectory)
@@ -19,15 +24,18 @@ import           System.FilePath   (takeDirectory, takeFileName, (</>))
 import           System.IO         (IOMode (ReadMode), hGetContents, hPutStrLn,
                                     stderr, withFile)
 
-readNassaModuleCollection :: FilePath -> IO [NassaModule]
-readNassaModuleCollection baseDir = do
+readNassaModuleCollection :: Bool -> FilePath -> IO [NassaModule]
+readNassaModuleCollection ignoreVersion baseDir = do
     -- search yml files
     hPutStrLn stderr "Searching NASSA.yml files... "
     yamlFilePaths <- findAllNassaYamlFiles baseDir
     hPutStrLn stderr $ show (length yamlFilePaths) ++ " found"
     -- remove yml files with wrong nassaVersion
-    hPutStrLn stderr "Checking NASSA versions... "
-    yamlFilePathsInVersionRange <- filterByNassaVersion yamlFilePaths
+    yamlFilePathsInVersionRange <- if ignoreVersion
+        then pure yamlFilePaths
+        else do
+            hPutStrLn stderr "Checking NASSA versions... "
+            filterByNassaVersion yamlFilePaths
     -- parse yml files
     hPutStrLn stderr "Loading NASSA.yml files... "
     eitherYamls <- mapM (try . readNassaYaml) yamlFilePathsInVersionRange :: IO [Either NassaException NassaModule]
@@ -95,6 +103,7 @@ readNassaYaml yamlPath = do
 checkIntegrity :: NassaModule -> IO NassaModule
 checkIntegrity (NassaModule (baseDir, yamlStruct)) = do
     checkFile "README.md"
+    checkReadme
     checkFile "CHANGELOG.md"
     checkFile "LICENSE"
     checkDocsDir
@@ -110,6 +119,19 @@ checkIntegrity (NassaModule (baseDir, yamlStruct)) = do
             unless fe $ throwIO $
                 NassaModuleIntegrityException nassaID $
                 show path ++ " does not exist"
+        checkReadme :: IO ()
+        checkReadme = do
+            readmeFull <- getDoc $ baseDir </> "README.md"
+            let sectionOfInterest = extractSection 2 "Further information" readmeFull
+                nrChars = T.length sectionOfInterest
+            if   nrChars == 0
+            then throwIO $ NassaModuleIntegrityException nassaID
+                 "README.md file does not have a '## Further information' section, or the section is empty"
+            else do
+                OP.when (nrChars > 10000) $
+                    throwIO $ NassaModuleIntegrityException nassaID $
+                    "The '## Further information' section in the README.md file has more than 10000 characters. " ++
+                    "It currently includes " ++ show nrChars ++ " characters"
         checkDocsDir :: IO ()
         checkDocsDir = case _nassaYamlDocsDir yamlStruct of
             Nothing -> return ()
