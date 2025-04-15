@@ -1,3 +1,4 @@
+- V 1.0.1.1: Fixed a bug in the `coverImage` validation.
 - V 1.0.1.0: Changes for schema version 1.0.0
     - Implemened the `coverImage` field in the representation of the NASSA.yml file, including file extension validation
     - Introduced new character count limits for the `title` and `description` fields

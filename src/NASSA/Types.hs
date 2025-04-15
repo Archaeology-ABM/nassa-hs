@@ -127,9 +127,9 @@ instance Show ModuleImagePath where
 instance FromJSON ModuleImagePath where
     parseJSON (String s) =
         let path = T.unpack s
-        in if map toLower (takeExtension path) `elem` ["png", "jpg", "jpeg", "svg"]
+        in if map toLower (takeExtension path) `elem` [".png", ".jpg", ".jpeg", ".svg"]
            then pure $ ModuleImagePath $ path
-           else fail "cover image must have extension png, jpg, jpeg, or svg"
+           else fail "cover image must have extension .png, .jpg, .jpeg, or .svg"
     parseJSON _ = mzero
 
 data ModuleType =
