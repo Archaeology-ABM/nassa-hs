@@ -151,16 +151,16 @@ data Contributor = Contributor
     { _contributorRole  :: [Role]
     , _contributorName  :: String
     , _contributorEmail :: Email
-    , _contributorORCID :: ORCID
+    , _contributorORCID :: Maybe ORCID
     }
     deriving (Show, Eq)
 
 instance FromJSON Contributor where
     parseJSON = withObject "contributors" $ \v -> Contributor
-        <$> v .: "roles"
-        <*> v .: "name"
-        <*> v .: "email"
-        <*> v .: "orcid"
+        <$> v .:  "roles"
+        <*> v .:  "name"
+        <*> v .:  "email"
+        <*> v .:? "orcid"
 
 data Role =
     RoleAuthor -- ^ Full authors who have made substantial contributions to the package and should show up in the package citation.
