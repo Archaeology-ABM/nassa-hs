@@ -1,5 +1,6 @@
 import           NASSA.CLI.List
 import           NASSA.CLI.Validate
+import           NASSA.CLI.Track
 import           NASSA.Types
 import           NASSA.Utils
 import           Paths_nassa         (version)
@@ -15,6 +16,7 @@ import           System.IO           (hPutStrLn, stderr)
 data Options =
     CmdList ListOptions
   | CmdValidate ValidateOptions
+  | CmdTrack TrackOptions
 
 -- command line interface
 
@@ -35,6 +37,7 @@ runCmd :: Options -> IO ()
 runCmd o = case o of
     CmdList opts     -> runList opts
     CmdValidate opts -> runValidate opts
+    CmdTrack opts    -> runTrack opts
 
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (OP.helper <*> versionOption <*> optParser) (
@@ -56,12 +59,18 @@ optParser = OP.subparser (
         OP.command "list" listOptInfo <>
         OP.command "validate" validateOptInfo <>
         OP.commandGroup "Inspection commands:"
+    ) OP.<|>
+    OP.subparser (
+        OP.command "track" trackOptInfo <>
+        OP.commandGroup "Library management commands:"
     )
   where
     listOptInfo = OP.info (OP.helper <*> (CmdList <$> listOptParser))
         (OP.progDesc "List nassa modules")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
         (OP.progDesc "Check nassa modules for structural correctness")
+    trackOptInfo = OP.info (OP.helper <*> (CmdTrack <$> trackOptParser))
+        (OP.progDesc "...")
 
 listOptParser :: OP.Parser ListOptions
 listOptParser = ListOptions <$> parseBasePath
@@ -72,6 +81,17 @@ validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseBasePath
                                     <*> parseNoExitCode
                                     <*> parseIgnoreVersion
+
+trackOptParser :: OP.Parser TrackOptions
+trackOptParser = TrackOptions <$> parseBasePath
+                              <*> parseHistoryFilePath
+
+parseHistoryFilePath :: OP.Parser FilePath
+parseHistoryFilePath = OP.strOption (
+    OP.long "histFile" <>
+    OP.short 'o' <>
+    OP.help "..."
+    )
 
 parseBasePath :: OP.Parser FilePath
 parseBasePath = OP.strOption (

@@ -21,8 +21,10 @@ import qualified Text.Email.Validate as TEV
 import qualified Text.Parsec         as P
 import qualified Text.Parsec.Text    as P
 
-newtype NassaModule = NassaModule (FilePath, NassaModuleYamlStruct)
-    deriving (Show, Eq)
+data NassaModule = NassaModule {
+    moduleBaseDir :: FilePath,
+    moduleYaml :: NassaModuleYamlStruct
+    } deriving (Show, Eq)
 
 data NassaModuleYamlStruct = NassaModuleYamlStruct {
       _nassaYamlID                  :: ModuleID
@@ -72,7 +74,7 @@ instance FromJSON NassaModuleYamlStruct where
 
 
 newtype ModuleID = ModuleID String
-    deriving (Eq)
+    deriving (Eq, Ord)
 
 instance Show ModuleID where
     show (ModuleID s) = s
