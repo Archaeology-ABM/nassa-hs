@@ -16,12 +16,12 @@ library
     exposed-modules:    NASSA.Types, NASSA.Utils, NASSA.ReadYml
                         NASSA.CLI.List, NASSA.CLI.Validate, NASSA.BibTeX,
                         NASSA.SPDXLicense, NASSA.Markdown, NASSA.History,
-                        NASSA.CLI.Track
+                        NASSA.CLI.Track, NASSA.ZipDir
     hs-source-dirs:     src
     build-depends:      base, filepath, aeson, bytestring, yaml,
                         directory, table-layout, time, parsec, email-validate,
                         text, file-embed, optparse-applicative, cmark, githash,
-                        containers
+                        containers, zip-archive, temporary
     default-language:   Haskell2010
 
 executable nassa
