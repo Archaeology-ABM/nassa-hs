@@ -1,9 +1,14 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module NASSA.CLI.Track where
 
 import           NASSA.History
 import NASSA.ReadYml
 import NASSA.ZipDir
+import NASSA.Zenodo
+import NASSA.Types
 
+import           Data.Time                 (Day, UTCTime (..), getCurrentTime)
 import System.Directory (doesFileExist)
 import System.FilePath ((</>))
 
@@ -24,12 +29,39 @@ runTrack (TrackOptions baseDir histFilePath) = do
     putStrLn $ show diff
     
     -- using baseDir is problematic as things currently stand; the paths may be in relation to the histFile
-    mapM_ (zipModule baseDir) diff
+    -- mapM_ (depositModuleAtZenodo baseDir) diff
    
     -- let newState = updateHistory oldState currentState
     -- writeHistory histFilePath newState
     
-    
-zipModule :: FilePath -> ModuleIteration -> IO FilePath
-zipModule baseDir (ModuleIteration _ _ _ path) = zipDirectoryToTemp (baseDir </> path)
-    
+depositModuleAtZenodo :: FilePath -> NassaModule -> IO ()
+depositModuleAtZenodo baseDir (NassaModule moduleDir yaml) = do
+  -- zip
+  zipArchivePath <- zipDirectoryToTemp (baseDir </> moduleDir)
+  -- prep submission
+  (UTCTime today _) <- getCurrentTime
+  let token = "YOUR_SANDBOX_ACCESS_TOKEN"
+      metadata =
+        Metadata
+          { metadataTitle = "Example research dataset"
+          , metadataDescription =
+              "<p>An example dataset uploaded through the Zenodo API.</p>"
+          , metadataPublicationDate = today
+          , metadataCreators =
+              [ Creator
+                  { creatorName = "Doe, Jane"
+                  , creatorAffiliation = Just "Example University"
+                  , creatorOrcid = Just "0000-0002-1694-233X"
+                  }
+              ]
+          , metadataUploadType = "dataset"
+          , metadataPublicationType = Nothing
+          , metadataAccessRight = "open"
+          , metadataLicense = Just "cc-by-4.0"
+          , metadataKeywords =
+              ["example", "Haskell", "Zenodo"]
+          , metadataVersion = Just "1.0.0"
+          }
+  result <- depositZip (sandboxClient token) metadata zipArchivePath
+  print result
+  
