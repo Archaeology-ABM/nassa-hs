@@ -98,10 +98,10 @@ readNassaYaml yamlPath = do
     yamlRaw <- B.readFile yamlPath
     case decodeEither' yamlRaw of
         Left err  -> throwIO $ NassaYamlParseException yamlPath err
-        Right pac -> return $ NassaModule (takeDirectory yamlPath, pac)
+        Right pac -> return $ NassaModule (takeDirectory yamlPath) pac
 
 checkIntegrity :: NassaModule -> IO NassaModule
-checkIntegrity (NassaModule (baseDir, yamlStruct)) = do
+checkIntegrity (NassaModule baseDir yamlStruct) = do
     checkFile "README.md"
     checkReadme
     checkFile "CHANGELOG.md"
@@ -109,7 +109,7 @@ checkIntegrity (NassaModule (baseDir, yamlStruct)) = do
     checkDocsDir
     checkCodeDirsExistence
     checkReferences
-    return (NassaModule (baseDir, yamlStruct))
+    return (NassaModule baseDir yamlStruct)
     where
         nassaID = _nassaYamlID yamlStruct
         checkFile :: FilePath -> IO ()

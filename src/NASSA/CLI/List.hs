@@ -20,7 +20,7 @@ runList (ListOptions baseDir rawOutput ignoreVersion) = do
 
 printModuleTable :: Bool -> [NassaModule] -> IO ()
 printModuleTable rawOutput modules = do
-    let yamlStruct = map (\(NassaModule (_,x)) -> x) modules
+    let yamlStruct = map (\(NassaModule _ x) -> x) modules
     let tableH = ["id", "title", "first author", "implementations"]
         tableB = transpose [
               map (show . _nassaYamlID) yamlStruct
