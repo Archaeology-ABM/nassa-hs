@@ -36,7 +36,7 @@ data NassaModuleHistory = NassaModuleHistory
 
 instance FromJSON NassaModuleHistory where
     parseJSON = withObject "NassaModuleHistory" $ \v -> NassaModuleHistory
-        <$> v .:  "id"
+        <$> v .:  "title"
         <*> v .:? "description"
         <*> v .:  "historyVersion"
         <*> v .:  "lastModified"
@@ -79,6 +79,12 @@ instance ToJSON ModuleIteration where
         , "commit"  .= modStateCommit x
         , "path"    .= modStatePath x
         ]
+
+getNewModules :: NassaModuleHistory -> NassaModuleHistory -> S.Set ModuleIteration
+getNewModules oldHistory newHistory =
+    let oldModuleSet = histYamlModules oldHistory
+        newModuleSet = histYamlModules newHistory
+    in S.difference oldModuleSet newModuleSet
 
 updateHistory :: NassaModuleHistory -> NassaModuleHistory -> NassaModuleHistory
 updateHistory oldHistory newHistory =
@@ -136,6 +142,18 @@ writeHistory p histShot = do
             "commit",
             "path"
          ]
+
+-- could be entirely avoided with a redesign
+emptyHistory :: IO NassaModuleHistory
+emptyHistory = do
+    (UTCTime today _) <- liftIO getCurrentTime
+    return $ NassaModuleHistory {
+      histYamlID             = ""
+    , histYamlDescription    = Just ""
+    , histYamlHistoryVersion = makeVersion [0, 1, 0]
+    , histYamlLastModified   = today
+    , histYamlModules        = S.empty
+    }
 
 makeHistory :: FilePath -> [NassaModule] -> IO NassaModuleHistory
 makeHistory pathToHistoryFile mods = do
