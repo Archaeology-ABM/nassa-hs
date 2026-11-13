@@ -11,6 +11,7 @@ data NassaException =
     | NassaBibTeXException FilePath String -- ^ An exception to represent errors when trying to parse the .bib file
     | NassaModuleMissingVersionException FilePath -- ^ An exception to indicate a missing nassaVersion field
     | NassaModuleVersionException FilePath String -- ^ An exception to represent an issue with the NASSA version of a module
+    | NassaHistoryException String
     deriving Show
 
 instance Exception NassaException
@@ -28,3 +29,5 @@ renderNassaException (NassaModuleMissingVersionException p) =
 renderNassaException (NassaModuleVersionException p s) =
     "/!\\ NASSA standard version mismatch in " ++ show p ++
     ". It has the nassaVersion \"" ++ s ++ "\", which is not supported by this version of the nassa tool."
+renderNassaException (NassaHistoryException s) =
+    "/!\\ Issue when handling history file: " ++ s
