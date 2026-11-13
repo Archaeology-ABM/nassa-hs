@@ -184,7 +184,7 @@ uploadFile manager client bucketUrl filePath = do
           { method = "PUT"
           , requestHeaders =
               authHeaders client
-                ++ [(hContentType, "application/zip")]
+                ++ [(hContentType, "application/octet-stream")]
           , requestBody = body
           }
   response <- httpLbs request manager

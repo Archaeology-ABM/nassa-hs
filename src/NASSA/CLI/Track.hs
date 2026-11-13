@@ -9,9 +9,10 @@ import NASSA.Zenodo
 import NASSA.Types
 
 import           Data.Time                 (Day, UTCTime (..), getCurrentTime)
-import System.Directory (doesFileExist)
-import System.FilePath ((</>))
+import System.Directory (doesFileExist, removeDirectoryRecursive)
+import System.FilePath ((</>), takeDirectory)
 import qualified Data.Set as S
+import Control.Exception (finally)
 
 data TrackOptions = TrackOptions {
       _trackBaseDir         :: FilePath
@@ -37,32 +38,48 @@ runTrack (TrackOptions baseDir histFilePath) = do
     
 depositModuleAtZenodo :: FilePath -> NassaModule -> IO ()
 depositModuleAtZenodo baseDir (NassaModule moduleDir yaml) = do
-  -- zip
   zipArchivePath <- zipDirectoryToTemp (baseDir </> moduleDir)
-  -- prep submission
-  (UTCTime today _) <- getCurrentTime
-  let token = "YOUR_SANDBOX_ACCESS_TOKEN"
-      metadata =
-        Metadata
-          { metadataTitle = "Example research dataset"
-          , metadataDescription =
-              "<p>An example dataset uploaded through the Zenodo API.</p>"
-          , metadataPublicationDate = today
-          , metadataCreators =
-              [ Creator
-                  { creatorName = "Doe, Jane"
-                  , creatorAffiliation = Just "Example University"
-                  , creatorOrcid = Just "0000-0002-1694-233X"
-                  }
-              ]
-          , metadataUploadType = "dataset"
-          , metadataPublicationType = Nothing
-          , metadataAccessRight = "open"
-          , metadataLicense = Just "cc-by-4.0"
-          , metadataKeywords =
-              ["example", "Haskell", "Zenodo"]
-          , metadataVersion = Just "1.0.0"
-          }
-  result <- depositZip (sandboxClient token) metadata zipArchivePath
-  print result
-  
+  let cleanup = removeDirectoryRecursive (takeDirectory zipArchivePath)
+      upload = do
+        (UTCTime today _) <- getCurrentTime
+        let token = "..."
+            metadata =
+              Metadata
+                { metadataTitle = "Example research dataset"
+                , metadataDescription =
+                    "<p>An example dataset uploaded through the Zenodo API.</p>"
+                , metadataPublicationDate = today
+                , metadataCreators =
+                    [ Creator
+                        { creatorName = "Doe, Jane"
+                        , creatorAffiliation = Just "Example University"
+                        , creatorOrcid = Just "0000-0002-1694-233X"
+                        }
+                    ]
+                , metadataUploadType = "dataset"
+                , metadataPublicationType = Nothing
+                , metadataAccessRight = "open"
+                , metadataLicense = Just "cc-by-4.0"
+                , metadataKeywords = ["example", "Haskell", "Zenodo"]
+                , metadataVersion = Just "1.0.0"
+                }
+        result <- depositZip (sandboxClient token) metadata zipArchivePath
+        print result
+  upload `finally` cleanup
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
