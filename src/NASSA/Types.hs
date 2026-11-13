@@ -74,7 +74,7 @@ instance FromJSON NassaModuleYamlStruct where
 
 
 newtype ModuleID = ModuleID String
-    deriving (Eq)
+    deriving (Eq, Ord)
 
 instance Show ModuleID where
     show (ModuleID s) = s

@@ -11,6 +11,7 @@ import NASSA.Types
 import           Data.Time                 (Day, UTCTime (..), getCurrentTime)
 import System.Directory (doesFileExist)
 import System.FilePath ((</>))
+import qualified Data.Set as S
 
 data TrackOptions = TrackOptions {
       _trackBaseDir         :: FilePath
@@ -26,10 +27,10 @@ runTrack (TrackOptions baseDir histFilePath) = do
          else emptyHistory
     currentState <- makeHistory histFilePath allModules
     let diff = getNewModules currentState oldState
-    putStrLn $ show diff
-    
+        updatedModuleIDs = S.map (ModuleID . modStateID) diff
+        modulesToDeposit = filter (\(NassaModule _ yaml) -> _nassaYamlID yaml `S.member` updatedModuleIDs) allModules  
     -- using baseDir is problematic as things currently stand; the paths may be in relation to the histFile
-    -- mapM_ (depositModuleAtZenodo baseDir) diff
+    mapM_ (depositModuleAtZenodo baseDir) modulesToDeposit
    
     -- let newState = updateHistory oldState currentState
     -- writeHistory histFilePath newState
